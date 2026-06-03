@@ -294,7 +294,7 @@ export class NewContractComponent implements OnInit {
         card_number:        f.card_number,
         bank_name:          f.bank_name,
         card_type:          f.card_type,
-        valid_until:        new Date(f.valid_until).toISOString(),
+        valid_until:        new Date(f.valid_until + '-01').toISOString(),
         pa_code:            f.pa_code || undefined,
         security_code:      f.security_code || undefined,
         value_bs:           f.value_bs!,
