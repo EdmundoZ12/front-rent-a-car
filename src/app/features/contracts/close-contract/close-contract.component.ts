@@ -69,30 +69,30 @@ export class CloseContractComponent implements OnInit {
     const msElapsed = ret ? Math.max(0, ret.getTime() - dep.getTime()) : 0;
     const days = Math.max(1, Math.ceil(msElapsed / 86_400_000));
 
-    // Subtotal tarifas
+    // Subtotal tarifas — backend usa 'hour'/'day'/'week'/'month'
     const rate = c.rate;
+    const ratePrice = Number(rate.price);
     let units: number;
     switch (rate.type) {
-      case 'hora':   units = Math.ceil(days * 24); break;
-      case 'semana': units = Math.ceil(days / 7);  break;
-      case 'mes':    units = Math.ceil(days / 30); break;
-      default:       units = days;
+      case 'hour':  units = Math.ceil(days * 24); break;
+      case 'week':  units = Math.ceil(days / 7);  break;
+      case 'month': units = Math.ceil(days / 30); break;
+      default:      units = days;                  // 'day'
     }
-    const subtTarifa = rate.price * units;
+    const subtTarifa = ratePrice * units;
 
-    // Subtotal coberturas
-    const subtCoverage = (c.coverages ?? []).reduce(
-      (s, cov) => s + cov.price_per_day * days, 0
+    // Subtotal coberturas — backend anida en contractCoverages[].coverage
+    const subtCoverage = (c.contractCoverages ?? []).reduce(
+      (s, cc) => s + Number(cc.coverage.price_per_day) * days, 0
     );
 
     // Subtotal combustible
     const depFuelIdx = FUEL_LEVELS.indexOf(c.delivery.departure_fuel as FuelLevel);
     const retFuelIdx = this.retFuel();
     const fuelDiff   = Math.max(0, depFuelIdx - retFuelIdx);
-    const fuelPrice  = c.vehicle?.fuel_type?.price_per_liter ?? 15;
-    const litersPerSeg = c.vehicle?.capacity_liters
-      ? c.vehicle.capacity_liters / 8
-      : 10;
+    const fuelPrice  = Number(c.vehicle?.fuelType?.price_per_liter ?? 15);
+    const tankCap    = Number(c.vehicle?.tank_capacity ?? 40);
+    const litersPerSeg = tankCap / 8;
     const subtComb = fuelDiff * litersPerSeg * fuelPrice;
 
     const subtotal = subtTarifa + subtCoverage + subtComb;
@@ -180,15 +180,13 @@ export class CloseContractComponent implements OnInit {
   }
 
   clientName() {
-    const c = this.contract();
-    if (!c?.client1) return '—';
-    return `${c.client1.first_name} ${c.client1.last_name}`;
+    return this.contract()?.client1?.full_name ?? '—';
   }
 
   vehicleDesc() {
     const v = this.contract()?.vehicle;
     if (!v) return '—';
-    return `${v.brand} ${v.model}`;
+    return `${v.brand} ${v.vehicleType?.name ?? ''}`.trim();
   }
 
   contractCode() {

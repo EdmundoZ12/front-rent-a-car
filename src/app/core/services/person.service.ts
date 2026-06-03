@@ -6,22 +6,22 @@ import { Person, Requester } from '../models/person.model';
 export class PersonService {
   async search(q: string): Promise<Person[]> {
     const { data } = await api.get<Person[]>('/persons/search', { params: { q } });
-    return data.map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}` }));
+    return data; // full_name ya viene del backend
   }
 
   async getAll(): Promise<Person[]> {
     const { data } = await api.get<Person[]>('/persons');
-    return data.map(p => ({ ...p, full_name: `${p.first_name} ${p.last_name}` }));
+    return data;
   }
 
   async getById(id: number): Promise<Person> {
     const { data } = await api.get<Person>(`/persons/${id}`);
-    return { ...data, full_name: `${data.first_name} ${data.last_name}` };
+    return data;
   }
 
   async create(person: Partial<Person>): Promise<Person> {
     const { data } = await api.post<Person>('/persons', person);
-    return { ...data, full_name: `${data.first_name} ${data.last_name}` };
+    return data;
   }
 
   async getRequesterByPerson(personId: number): Promise<Requester | null> {

@@ -121,7 +121,7 @@
                           </div>
                           <div class="dd-info">
                             <div class="dd-name">{{ p.full_name }}</div>
-                            <div class="dd-meta">CI: {{ p.ci }} · {{ p.address?.city ?? '—' }}</div>
+                            <div class="dd-meta">CI: {{ p.id_card }} · {{ p.address ?? '—' }}</div>
                           </div>
                           <span class="material-icons dd-arrow">chevron_right</span>
                         </div>
@@ -145,10 +145,10 @@
                   <div class="cc-info">
                     <div class="cc-name">{{ form.client1.full_name }}</div>
                     <div class="cc-meta">
-                      @if (form.client1.ci) { <span>CI: <strong>{{ form.client1.ci }}</strong></span> }
+                      @if (form.client1.id_card) { <span>CI: <strong>{{ form.client1.id_card }}</strong></span> }
                       @if (form.client1.phone) { <span>☎ {{ form.client1.phone }}</span> }
-                      @if (form.client1.email) { <span>✉ {{ form.client1.email }}</span> }
-                      @if (form.client1.address?.city) { <span>📍 {{ form.client1.address?.city }}</span> }
+
+                      @if (form.client1.address) { <span>📍 {{ form.client1.address }}</span> }
                     </div>
                   </div>
                   <div class="cc-check">
@@ -319,7 +319,7 @@
                     <div class="vc-footer">
                       <span class="vc-color-dot" [style.background]="v.color"></span>
                       <span class="vc-color-label">{{ v.color }}</span>
-                      <span class="vc-type">{{ vehicleTypeName(v.vehicle_type_id) }}</span>
+                      <span class="vc-type">{{ vehicleTypeName(v.vehicle_type_id ?? 0) }}</span>
                     </div>
                   </div>
                 }
@@ -345,7 +345,7 @@
                     >
                       <span class="rate-label">{{ rateLabel(r.type) }}</span>
                       <span class="rate-price">Bs. {{ r.price }}</span>
-                      <span class="rate-unit">{{ r.type === 'hora' ? 'por hora' : r.type === 'dia' ? 'por día' : r.type === 'semana' ? 'por semana' : 'por mes' }}</span>
+                      <span class="rate-unit">{{ r.type === 'hour' ? 'por hora' : r.type === 'day' ? 'por día' : r.type === 'week' ? 'por semana' : 'por mes' }}</span>
                     </button>
                   }
                 </div>
@@ -613,9 +613,9 @@
                 </div>
                 <div class="ib-body">
                   <div class="ib-row"><span>Nombre</span><span>{{ form.client1?.full_name ?? '—' }}</span></div>
-                  <div class="ib-row"><span>CI</span><span>{{ form.client1?.ci ?? '—' }}</span></div>
+                  <div class="ib-row"><span>CI</span><span>{{ form.client1?.id_card ?? '—' }}</span></div>
                   <div class="ib-row"><span>Teléfono</span><span>{{ form.client1?.phone ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Ciudad</span><span>{{ form.client1?.address?.city ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Ciudad</span><span>{{ form.client1?.address ?? '—' }}</span></div>
                 </div>
               </div>
               <!-- Vehículo -->
@@ -626,8 +626,8 @@
                 <div class="ib-body">
                   <div class="ib-row"><span>Modelo</span><span>{{ form.vehicle ? form.vehicle.brand + ' ' + form.vehicle.model : '—' }}</span></div>
                   <div class="ib-row"><span>Placa</span><span>{{ form.vehicle?.plate ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Tipo</span><span>{{ form.vehicle ? vehicleTypeName(form.vehicle.vehicle_type_id) : '—' }}</span></div>
-                  <div class="ib-row"><span>Tarifa</span><span>{{ form.rate ? 'Bs. ' + form.rate.price + ' / ' + form.rate.type : '—' }}</span></div>
+                  <div class="ib-row"><span>Tipo</span><span>{{ form.vehicle ? vehicleTypeName(form.vehicle.vehicle_type_id ?? 0) : '—' }}</span></div>
+                  <div class="ib-row"><span>Tarifa</span><span>{{ form.rate ? 'Bs. ' + (+form.rate.price).toFixed(2) + ' / ' + rateLabel(form.rate.type) : '—' }}</span></div>
                   <div class="ib-row"><span>Km salida</span><span>{{ form.departure_km ? form.departure_km + ' km' : '—' }}</span></div>
                 </div>
               </div>
@@ -674,7 +674,7 @@
                   @for (cov of est.selectedCovs; track cov.id) {
                     <div class="est-row">
                       <span>{{ cov.name }} × {{ est.days }} día{{ est.days !== 1 ? 's' : '' }}</span>
-                      <span>{{ formatCurrency(cov.price_per_day * est.days) }}</span>
+                      <span>{{ formatCurrency(+cov.price_per_day * est.days) }}</span>
                     </div>
                   }
                   <div class="est-row est-row--sep">
