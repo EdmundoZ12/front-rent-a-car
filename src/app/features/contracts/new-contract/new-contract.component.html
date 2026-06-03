@@ -331,7 +331,7 @@
                     <div class="vc-footer">
                       <span class="vc-color-dot" [style.background]="v.color"></span>
                       <span class="vc-color-label">{{ v.color }}</span>
-                      <span class="vc-type">{{ vehicleTypeName(v.vehicle_type_id ?? 0) }}</span>
+                      <span class="vc-type">{{ vehicleTypeName(v.vehicleType?.id ?? 0) }}</span>
                     </div>
                   </div>
                 }
@@ -638,7 +638,7 @@
                 <div class="ib-body">
                   <div class="ib-row"><span>Modelo</span><span>{{ form().vehicle ? form().vehicle!.brand + ' ' + form().vehicle!.model : '—' }}</span></div>
                   <div class="ib-row"><span>Placa</span><span>{{ form().vehicle?.plate ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Tipo</span><span>{{ form().vehicle ? vehicleTypeName(form().vehicle!.vehicle_type_id ?? 0) : '—' }}</span></div>
+                  <div class="ib-row"><span>Tipo</span><span>{{ form().vehicle ? vehicleTypeName(form().vehicle!.vehicleType?.id ?? 0) : '—' }}</span></div>
                   <div class="ib-row"><span>Tarifa</span><span>{{ form().rate ? 'Bs. ' + (+form().rate!.price).toFixed(2) + ' / ' + rateLabel(form().rate!.type) : '—' }}</span></div>
                   <div class="ib-row"><span>Km salida</span><span>{{ form().departure_km ? form().departure_km + ' km' : '—' }}</span></div>
                 </div>

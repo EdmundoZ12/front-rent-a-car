@@ -70,7 +70,7 @@ export class NewContractComponent implements OnInit {
   readonly filteredVehicles = computed(() => {
     const lid = this.leafTypeId();
     if (!lid) return this.vehicles();
-    return this.vehicles().filter(v => v.vehicle_type_id === lid);
+    return this.vehicles().filter(v => v.vehicleType?.id === lid);
   });
 
   /* ── step 5: estimated cost ─────────────────────────── */
@@ -98,7 +98,7 @@ export class NewContractComponent implements OnInit {
       default:      units = days;
     }
 
-    const typePrices       = this.buildTypeChain(v.vehicle_type_id ?? 0);
+    const typePrices       = this.buildTypeChain(v.vehicleType?.id ?? 0);
     const subtotalRate     = Number(rate.price) * units + typePrices;
     const selectedCovs     = this.coverages().filter(c => f.selectedCoverageIds.includes(c.id));
     const subtotalCoverage = selectedCovs.reduce((s, c) => s + Number(c.price_per_day) * days, 0);
