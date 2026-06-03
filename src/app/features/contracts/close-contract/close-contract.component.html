@@ -1,0 +1,343 @@
+<!-- ── SUCCESS ────────────────────────────────────────────── -->
+@if (closed()) {
+  <div class="success-screen">
+    <div class="success-icon">
+      <span class="material-icons">lock</span>
+    </div>
+    <div class="success-title">Contrato cerrado exitosamente</div>
+    <div class="success-sub">La liquidación ha sido registrada en el sistema.</div>
+    <div class="success-actions">
+      <a routerLink="/contratos" class="btn-primary">
+        <span class="material-icons">arrow_back</span>
+        Ver contratos
+      </a>
+    </div>
+  </div>
+}
+
+@if (!closed()) {
+
+  <!-- ── LOADING ────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="page-loading">
+      <div class="spinner"></div>
+      <span>Cargando contrato...</span>
+    </div>
+  }
+
+  <!-- ── ERROR ─────────────────────────────────────────────── -->
+  @if (error() && !loading()) {
+    <div class="page-loading">
+      <span class="material-icons" style="font-size:40px;color:#EF5350">cloud_off</span>
+      <span style="color:#757575">{{ error() }}</span>
+      <a routerLink="/contratos" class="btn-back">Volver a contratos</a>
+    </div>
+  }
+
+  <!-- ── MAIN ───────────────────────────────────────────────── -->
+  @if (!loading() && !error() && contract()) {
+    <div class="page">
+
+      <!-- Breadcrumb + header -->
+      <div>
+        <div class="breadcrumb">
+          <a routerLink="/contratos" class="bc-link">Contratos</a>
+          <span class="material-icons bc-sep">chevron_right</span>
+          <span class="bc-code">{{ contractCode() }}</span>
+          <span class="material-icons bc-sep">chevron_right</span>
+          <span class="bc-current">Cierre de Contrato</span>
+        </div>
+        <div class="page-header">
+          <div>
+            <div class="page-title">Cierre de Contrato</div>
+            <div class="page-subtitle">{{ clientName() }} · {{ vehicleDesc() }} · {{ contract()!.vehicle?.plate }}</div>
+          </div>
+          <a routerLink="/contratos" class="btn-back">
+            <span class="material-icons">arrow_back</span>
+            Volver
+          </a>
+        </div>
+      </div>
+
+      <!-- Two columns -->
+      <div class="two-col">
+
+        <!-- ── LEFT: contract detail ─────────────────────── -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Detalle del Contrato</span>
+            <span class="status-chip">
+              <span class="status-dot"></span>
+              Activo
+            </span>
+          </div>
+          <div class="panel-body">
+
+            <div class="info-section">
+              <div class="info-sec-head"><span class="material-icons">description</span> CONTRATO</div>
+              <div class="info-row"><span>N° Contrato</span><span class="mono">{{ contractCode() }}</span></div>
+              <div class="info-row"><span>Fecha apertura</span><span>{{ fmtDate(contract()!.created_at) }}</span></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="info-section">
+              <div class="info-sec-head"><span class="material-icons">person</span> CLIENTE</div>
+              <div class="info-row"><span>Nombre</span><span>{{ clientName() }}</span></div>
+              <div class="info-row"><span>C.I.</span><span class="mono">{{ contract()!.client1?.ci ?? '—' }}</span></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="info-section">
+              <div class="info-sec-head"><span class="material-icons">directions_car</span> VEHÍCULO</div>
+              <div class="info-row"><span>Marca / Modelo</span><span>{{ vehicleDesc() }}</span></div>
+              <div class="info-row"><span>Placa</span><span class="mono">{{ contract()!.vehicle?.plate ?? '—' }}</span></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="info-section">
+              <div class="info-sec-head"><span class="material-icons">sell</span> TARIFA CONTRATADA</div>
+              <div class="info-row"><span>Tipo</span><span>{{ contract()!.rate?.type ?? '—' }}</span></div>
+              <div class="info-row"><span>Precio</span><span class="accent">Bs. {{ contract()!.rate?.price?.toFixed(2) ?? '—' }} / {{ contract()!.rate?.type }}</span></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="info-section">
+              <div class="info-sec-head"><span class="material-icons">login</span> CONDICIONES DE SALIDA</div>
+              <div class="info-row"><span>Fecha / Hora</span><span>{{ fmtDateTime(contract()!.delivery?.departure_datetime) }}</span></div>
+              <div class="info-row"><span>Kilometraje</span><span class="mono">{{ (contract()!.delivery?.departure_km ?? 0).toLocaleString() }} km</span></div>
+              <div class="fuel-display-label">Nivel de combustible</div>
+              <div class="fuel-bar readonly">
+                @for (lbl of fuelLabels; track $index; let i = $index) {
+                  <div
+                    class="fuel-seg"
+                    [style.background]="i <= depFuelIndex() ? fuelColors[i] : '#E8E8E8'"
+                    [ngClass]="{ 'fuel-seg--current': i === depFuelIndex() }"
+                  ></div>
+                }
+              </div>
+              <div class="fuel-bar-labels">
+                @for (lbl of fuelLabels; track $index; let i = $index) {
+                  <div class="fuel-bar-lbl" [ngClass]="{ 'fuel-bar-lbl--active': i === depFuelIndex() }">{{ lbl }}</div>
+                }
+              </div>
+            </div>
+            <div class="divider"></div>
+
+            @if (contract()!.coverages?.length) {
+              <div class="info-section">
+                <div class="info-sec-head"><span class="material-icons">shield</span> COBERTURAS ACTIVAS</div>
+                <div class="cov-chips">
+                  @for (cov of contract()!.coverages; track cov.id) {
+                    <span class="cov-chip">{{ cov.name }}</span>
+                  }
+                </div>
+              </div>
+              <div class="divider"></div>
+            }
+
+            @if (contract()!.guarantee) {
+              <div class="info-section">
+                <div class="info-sec-head"><span class="material-icons">account_balance</span> GARANTÍA</div>
+                <div class="info-row"><span>Banco</span><span>{{ contract()!.guarantee!.bank_name }}</span></div>
+                <div class="info-row"><span>Valor</span><span class="accent">Bs. {{ contract()!.guarantee!.value_bs.toLocaleString() }}</span></div>
+              </div>
+            }
+
+          </div>
+        </div>
+
+        <!-- ── RIGHT: close form ─────────────────────────── -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="material-icons" style="color:var(--color-accent);font-size:17px">assignment_return</span>
+            <span class="panel-title">Formulario de Cierre</span>
+          </div>
+          <div class="panel-body">
+
+            <!-- Retorno -->
+            <div class="form-section">
+              <div class="form-sec-head"><span class="material-icons">event_available</span> RETORNO DEL VEHÍCULO</div>
+              <div class="grid-date">
+                <div class="field">
+                  <label class="field-lbl">Fecha de retorno</label>
+                  <input class="inp" type="date" [(ngModel)]="retDate" />
+                </div>
+                <div class="field">
+                  <label class="field-lbl">Hora</label>
+                  <input class="inp" type="time" [(ngModel)]="retTime" />
+                </div>
+              </div>
+              <div class="field mt-12">
+                <label class="field-lbl">Kilometraje de retorno</label>
+                <div class="km-input">
+                  <span class="material-icons">speed</span>
+                  <input
+                    class="inp km-inp"
+                    type="number"
+                    placeholder="0"
+                    [(ngModel)]="retKm"
+                  />
+                  <span class="km-unit">km</span>
+                </div>
+                @if (liq(); as l) {
+                  @if (l.kmDriven !== null && l.kmDriven >= 0) {
+                    <div class="km-hint km-hint--ok">
+                      <span class="material-icons">trending_up</span>
+                      {{ l.kmDriven.toLocaleString() }} km recorridos
+                    </div>
+                  }
+                  @if (l.kmDriven !== null && l.kmDriven < 0) {
+                    <div class="km-hint km-hint--err">
+                      <span class="material-icons">warning</span>
+                      El km de retorno no puede ser menor al de salida
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Combustible retorno -->
+            <div class="form-section">
+              <div class="form-sec-head"><span class="material-icons">local_gas_station</span> NIVEL DE COMBUSTIBLE — RETORNO</div>
+              <div class="fuel-bar interactive">
+                @for (lbl of fuelLabels; track $index; let i = $index) {
+                  <div
+                    class="fuel-seg fuel-seg--interactive"
+                    [style.background]="fuelSegActive(i) ? fuelColors[i] : '#E8E8E8'"
+                    [ngClass]="{ 'fuel-seg--current': i === retFuel() }"
+                    (click)="setFuel(i)"
+                  ></div>
+                }
+              </div>
+              <div class="fuel-bar-labels">
+                @for (lbl of fuelLabels; track $index; let i = $index) {
+                  <div
+                    class="fuel-bar-lbl fuel-bar-lbl--clickable"
+                    [ngClass]="{ 'fuel-bar-lbl--active': i === retFuel() }"
+                    (click)="setFuel(i)"
+                  >{{ lbl }}</div>
+                }
+              </div>
+
+              @if (liq(); as l) {
+                @if (l.fuelDiff > 0) {
+                  <div class="fuel-alert fuel-alert--warn">
+                    <span class="material-icons">warning</span>
+                    <span>Diferencia {{ l.fuelDiff }} seg. · Cargo adicional: <strong>Bs. {{ fmt(l.subtComb) }}</strong></span>
+                  </div>
+                } @else {
+                  <div class="fuel-alert fuel-alert--ok">
+                    <span class="material-icons">check_circle</span>
+                    <span>Sin cargo adicional por combustible</span>
+                  </div>
+                }
+              }
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Deducciones -->
+            <div class="form-section">
+              <div class="form-sec-head"><span class="material-icons">remove_circle_outline</span> DEDUCCIONES OPCIONALES</div>
+              <div class="ded-list">
+                @for (d of deductions; track $index; let i = $index) {
+                  <div class="ded-row" [ngClass]="{ 'ded-row--active': d.active }">
+                    <div class="ded-check" [ngClass]="{ 'ded-check--on': d.active }" (click)="toggleDed(i)">
+                      @if (d.active) { <span class="material-icons">check</span> }
+                    </div>
+                    <span class="ded-label" [ngClass]="{ 'ded-label--active': d.active }">{{ d.label }}</span>
+                    <div class="ded-amount">
+                      <span class="ded-currency">Bs.</span>
+                      <input
+                        class="ded-inp"
+                        type="number"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        [(ngModel)]="d.value"
+                        [disabled]="!d.active"
+                      />
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── BOTTOM: liquidación preview ──────────────────── -->
+      @if (liq(); as l) {
+        <div class="liq-panel">
+          <div class="liq-head">
+            <span class="material-icons" style="color:var(--color-accent)">receipt_long</span>
+            <span class="liq-title">Preview Liquidación</span>
+            <span class="liq-meta">· Calculado en tiempo real</span>
+            <span class="liq-info">{{ l.days }} día{{ l.days !== 1 ? 's' : '' }} · {{ l.dedCount }} deducción{{ l.dedCount !== 1 ? 'es' : '' }}</span>
+          </div>
+          <div class="liq-body">
+
+            <!-- 4 métricas -->
+            <div class="metrics">
+              <div class="metric-col">
+                <div class="metric-label">Subtotal Tarifas</div>
+                <div class="metric-value">Bs. {{ fmt(l.subtTarifa) }}</div>
+                <div class="metric-sub">{{ l.days }} día{{ l.days !== 1 ? 's' : '' }} × Bs. {{ contract()!.rate?.price?.toFixed(2) }}/{{ contract()!.rate?.type }}</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">Combustible</div>
+                <div class="metric-value" [ngClass]="{ 'metric-value--danger': l.subtComb > 0 }">Bs. {{ fmt(l.subtComb) }}</div>
+                <div class="metric-sub">{{ l.fuelDiff > 0 ? l.fuelDiff + ' seg. de diferencia' : 'Sin diferencia' }}</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">IVA 13%</div>
+                <div class="metric-value">Bs. {{ fmt(l.iva) }}</div>
+                <div class="metric-sub">Sobre subtotal general</div>
+              </div>
+              <div class="metric-col">
+                <div class="metric-label">Total Deducciones</div>
+                <div class="metric-value" [ngClass]="{ 'metric-value--ok': l.totalDed > 0 }">−Bs. {{ fmt(l.totalDed) }}</div>
+                <div class="metric-sub">{{ l.dedCount }} ítem{{ l.dedCount !== 1 ? 's' : '' }} activo{{ l.dedCount !== 1 ? 's' : '' }}</div>
+              </div>
+            </div>
+
+            <!-- Total + button -->
+            <div class="liq-total">
+              <div class="total-label">Total Final</div>
+              <div class="total-value">Bs. {{ fmt(l.grandTotal) }}</div>
+              <div class="total-usd">≈ $ {{ fmt(l.grandTotal / 6.96) }}</div>
+
+              @if (closeError()) {
+                <div class="close-error">
+                  <span class="material-icons">error</span>
+                  {{ closeError() }}
+                </div>
+              }
+
+              <button
+                class="btn-close-contract"
+                [disabled]="closing()"
+                (click)="close()"
+              >
+                @if (closing()) {
+                  <div class="spinner-sm"></div>
+                  Cerrando...
+                } @else {
+                  <span class="material-icons">lock</span>
+                  Cerrar Contrato
+                }
+              </button>
+            </div>
+
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+
+}
