@@ -557,3 +557,40 @@
   cursor: pointer; margin-left: auto;
 }
 .cascade-clear:hover { background: #FFEBEE; color: #E53935; border-color: #EF9A9A; }
+
+/* ─── Price accumulator (step 2) ────────────────────────────── */
+.price-accum {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 12px 18px;
+  background: #FFFDE7; border: 1.5px solid var(--color-accent);
+  border-radius: 10px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.price-accum-items {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;
+}
+.price-accum-item {
+  display: flex; flex-direction: column; align-items: center;
+  background: #fff; border: 1px solid #FFE082;
+  border-radius: 8px; padding: 4px 12px; line-height: 1.3;
+}
+.price-accum-item--rate {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+.price-accum-item--rate .price-accum-label,
+.price-accum-item--rate .price-accum-val { color: #0A0A0A; }
+.price-accum-label { font-size: 11px; color: #757575; font-weight: 500; }
+.price-accum-val   { font-size: 14px; font-weight: 700; color: #0A0A0A; }
+.price-accum-sep   { font-size: 18px; color: #BDBDBD; font-weight: 300; }
+.price-accum-total {
+  display: flex; align-items: baseline; gap: 6px; white-space: nowrap;
+}
+.price-accum-total-label {
+  font-size: 12px; color: #757575; font-weight: 500;
+}
+.price-accum-total-val {
+  font-size: 22px; font-weight: 800; color: #0A0A0A;
+}
+.price-accum-unit {
+  font-size: 12px; color: #757575;
+}
