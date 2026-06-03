@@ -1,0 +1,766 @@
+<!-- ── SUCCESS SCREEN ──────────────────────────────────────── -->
+@if (confirmed()) {
+  <div class="success-screen">
+    <div class="success-icon">
+      <span class="material-icons">check_circle</span>
+    </div>
+    <div class="success-title">¡Contrato creado exitosamente!</div>
+    <div class="success-sub">El contrato ha sido registrado en el sistema.</div>
+    <div class="success-actions">
+      <button class="btn-primary" (click)="resetForm()">
+        <span class="material-icons">add</span>
+        Nuevo contrato
+      </button>
+      <a routerLink="/contratos" class="btn-outline">
+        Ver todos los contratos
+      </a>
+    </div>
+  </div>
+}
+
+<!-- ── MAIN STEPPER ────────────────────────────────────────── -->
+@if (!confirmed()) {
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a routerLink="/contratos">
+      <span class="material-icons">description</span>
+      Contratos
+    </a>
+    <span class="material-icons sep">chevron_right</span>
+    <span class="bc-current">Nuevo Contrato</span>
+  </div>
+
+  <!-- Stepper header -->
+  <div class="stepper-header">
+    @for (s of steps; track $index; let i = $index) {
+      <div
+        class="step-item"
+        [ngClass]="{ 'step-item--done': i < currentStep(), 'step-item--active': i === currentStep() }"
+        (click)="goStep(i)"
+      >
+        <div class="step-circle">
+          @if (i < currentStep()) {
+            <span class="material-icons">check</span>
+          } @else {
+            <span class="material-icons">{{ s.icon }}</span>
+          }
+        </div>
+        <div class="step-labels">
+          <div class="step-label">{{ s.label }}</div>
+          <div class="step-sub">{{ s.sub }}</div>
+        </div>
+      </div>
+      @if (i < steps.length - 1) {
+        <div class="step-connector" [ngClass]="{ 'step-connector--done': i < currentStep() }"></div>
+      }
+    }
+  </div>
+
+  <!-- Step content -->
+  <div class="step-body">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-title">{{ steps[currentStep()].label }}</div>
+        <div class="step-card-sub">Paso {{ currentStep() + 1 }} de {{ steps.length }} · {{ steps[currentStep()].sub }}</div>
+      </div>
+
+      <!-- Loading overlay -->
+      @if (loading()) {
+        <div class="step-loading">
+          <div class="spinner"></div>
+          <span>Cargando datos...</span>
+        </div>
+      }
+
+      @if (!loading()) {
+        <!-- ──────────────── STEP 1 ──────────────────────────── -->
+        @if (currentStep() === 0) {
+          <div class="step-content">
+
+            <!-- Búsqueda cliente -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">person_search</span></div>
+                <div>
+                  <div class="section-title">Búsqueda de cliente</div>
+                  <div class="section-sub">Nombre completo o cédula de identidad</div>
+                </div>
+              </div>
+
+              <div class="search-wrap" style="position:relative">
+                <div class="search-field" [ngClass]="{ 'search-field--selected': !!form.client1 }">
+                  <span class="material-icons sf-icon">search</span>
+                  <input
+                    [value]="form.client1 ? form.client1.full_name! : searchQuery"
+                    [readOnly]="!!form.client1"
+                    (input)="searchQuery = $any($event.target).value; onSearchInput()"
+                    (focus)="searchQuery && showDropdown.set(true)"
+                    (blur)="hideDropdown()"
+                    placeholder="Buscar por nombre o cédula de identidad..."
+                  />
+                  @if (form.client1 || searchQuery) {
+                    <button class="sf-clear" (mousedown)="clearClient()">
+                      <span class="material-icons">close</span>
+                    </button>
+                  }
+                </div>
+
+                <!-- Dropdown resultados -->
+                @if (showDropdown() && !form.client1) {
+                  <div class="search-dropdown">
+                    @if (searching()) {
+                      <div class="dd-loading">
+                        <div class="spinner-sm"></div> Buscando...
+                      </div>
+                    }
+                    @if (!searching() && searchResults().length > 0) {
+                      @for (p of searchResults(); track p.id) {
+                        <div class="dd-item" (mousedown)="selectClient(p)">
+                          <div class="dd-avatar" [style.background]="avatarBg(p.full_name!)" [style.color]="avatarColor(p.full_name!)">
+                            {{ initials(p.full_name!) }}
+                          </div>
+                          <div class="dd-info">
+                            <div class="dd-name">{{ p.full_name }}</div>
+                            <div class="dd-meta">CI: {{ p.ci }} · {{ p.address?.city ?? '—' }}</div>
+                          </div>
+                          <span class="material-icons dd-arrow">chevron_right</span>
+                        </div>
+                      }
+                    }
+                    @if (!searching() && searchResults().length === 0 && searchQuery.trim()) {
+                      <div class="dd-empty">
+                        <div>Sin resultados para "<strong>{{ searchQuery }}</strong>"</div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Selected card -->
+              @if (form.client1) {
+                <div class="client-card">
+                  <div class="cc-avatar" [style.background]="avatarBg(form.client1.full_name!)" [style.color]="avatarColor(form.client1.full_name!)">
+                    {{ initials(form.client1.full_name!) }}
+                  </div>
+                  <div class="cc-info">
+                    <div class="cc-name">{{ form.client1.full_name }}</div>
+                    <div class="cc-meta">
+                      @if (form.client1.ci) { <span>CI: <strong>{{ form.client1.ci }}</strong></span> }
+                      @if (form.client1.phone) { <span>☎ {{ form.client1.phone }}</span> }
+                      @if (form.client1.email) { <span>✉ {{ form.client1.email }}</span> }
+                      @if (form.client1.address?.city) { <span>📍 {{ form.client1.address?.city }}</span> }
+                    </div>
+                  </div>
+                  <div class="cc-check">
+                    <span class="material-icons">check_circle</span>
+                    Seleccionado
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Conductor diferente -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">drive_eta</span></div>
+                <div class="section-title">Conductor</div>
+              </div>
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="form.differentDriver"
+                  (change)="toggleDifferentDriver($any($event.target).checked)"
+                />
+                El conductor es diferente al cliente
+              </label>
+              @if (form.differentDriver) {
+                <div class="grid-3 mt-12">
+                  <div class="field">
+                    <div class="field-label">Nombre completo</div>
+                    <div class="input-icon">
+                      <span class="material-icons">badge</span>
+                      <input placeholder="Nombre del conductor" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="field-label">Cédula de identidad</div>
+                    <div class="input-icon">
+                      <span class="material-icons">credit_card</span>
+                      <input placeholder="CI" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="field-label">Teléfono / Celular</div>
+                    <div class="input-icon">
+                      <span class="material-icons">phone</span>
+                      <input placeholder="Número" />
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Requisante -->
+            <div class="section">
+              <div class="section-head section-head--clickable" (click)="requesterOpen.set(!requesterOpen())">
+                <div class="section-icon"><span class="material-icons">support_agent</span></div>
+                <div>
+                  <div class="section-title">Requisante</div>
+                  <div class="section-sub">Opcional · Persona que solicita el alquiler</div>
+                </div>
+                <span class="material-icons ml-auto">{{ requesterOpen() ? 'expand_less' : 'expand_more' }}</span>
+              </div>
+              @if (requesterOpen()) {
+                <div class="grid-3 mt-12">
+                  <div class="field">
+                    <div class="field-label">Código</div>
+                    <div class="input-icon">
+                      <span class="material-icons">tag</span>
+                      <input placeholder="Código requisante" [(ngModel)]="requesterCode" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="field-label">Teléfono</div>
+                    <div class="input-icon">
+                      <span class="material-icons">phone</span>
+                      <input placeholder="Teléfono" [(ngModel)]="requesterPhone" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <div class="field-label">Celular</div>
+                    <div class="input-icon">
+                      <span class="material-icons">smartphone</span>
+                      <input placeholder="Celular" [(ngModel)]="requesterCel" />
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- ──────────────── STEP 2 ──────────────────────────── -->
+        @if (currentStep() === 1) {
+          <div class="step-content">
+
+            <!-- Árbol de selección -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">account_tree</span></div>
+                <div>
+                  <div class="section-title">Árbol de selección</div>
+                  <div class="section-sub">Tipo → Subtipo → Modelo disponible</div>
+                </div>
+              </div>
+              <div class="grid-3">
+                <div class="field">
+                  <div class="field-label">Tipo de vehículo</div>
+                  <select class="sel" (change)="setFilterType(+$any($event.target).value || null)">
+                    <option value="">Todos los tipos</option>
+                    @for (t of rootTypes(); track t.id) {
+                      <option [value]="t.id">{{ t.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Subtipo</div>
+                  <select class="sel" [disabled]="!filterTypeId()" (change)="setFilterSubtype(+$any($event.target).value || null)">
+                    <option value="">Todos</option>
+                    @for (s of subtypes(); track s.id) {
+                      <option [value]="s.id">{{ s.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Disponibilidad</div>
+                  <select class="sel">
+                    <option value="">Todos</option>
+                    <option value="1">Disponibles</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grid de vehículos -->
+            <div class="section">
+              <div class="vehicle-count">
+                {{ filteredVehicles().length }} vehículos
+                @if (form.vehicle) {
+                  · <span style="color:var(--color-accent);font-weight:500">Seleccionado: {{ form.vehicle.brand }} {{ form.vehicle.model }}</span>
+                }
+              </div>
+
+              @if (filteredVehicles().length === 0) {
+                <div class="empty-state">
+                  <span class="material-icons">directions_car</span>
+                  <span>No hay vehículos para los filtros seleccionados</span>
+                </div>
+              }
+
+              <div class="vehicle-grid">
+                @for (v of filteredVehicles(); track v.id) {
+                  <div
+                    class="vehicle-card"
+                    [ngClass]="{ 'vehicle-card--selected': form.vehicle?.id === v.id, 'vehicle-card--unavailable': v.available === false }"
+                    (click)="v.available !== false && selectVehicle(v)"
+                  >
+                    @if (form.vehicle?.id === v.id) {
+                      <div class="vc-badge vc-badge--selected">✓ ELEGIDO</div>
+                    }
+                    @if (v.available === false) {
+                      <div class="vc-badge vc-badge--occupied">OCUPADO</div>
+                    }
+                    <div class="vc-icon-wrap">
+                      <span class="material-icons">directions_car</span>
+                    </div>
+                    <div class="vc-model">{{ v.brand }} {{ v.model }}</div>
+                    <div class="vc-plate">{{ v.plate }}</div>
+                    <div class="vc-footer">
+                      <span class="vc-color-dot" [style.background]="v.color"></span>
+                      <span class="vc-color-label">{{ v.color }}</span>
+                      <span class="vc-type">{{ vehicleTypeName(v.vehicle_type_id) }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Selector tarifa -->
+            @if (form.vehicle) {
+              <div class="section rate-section">
+                <div class="section-head">
+                  <div class="section-icon"><span class="material-icons">sell</span></div>
+                  <div>
+                    <div class="section-title">Tipo de tarifa</div>
+                    <div class="section-sub">{{ form.vehicle.brand }} {{ form.vehicle.model }} · {{ form.vehicle.plate }}</div>
+                  </div>
+                </div>
+                <div class="rate-buttons">
+                  @for (r of rates(); track r.id) {
+                    <button
+                      class="rate-btn"
+                      [ngClass]="{ 'rate-btn--active': form.rate?.id === r.id }"
+                      (click)="selectRate(r)"
+                    >
+                      <span class="rate-label">{{ rateLabel(r.type) }}</span>
+                      <span class="rate-price">Bs. {{ r.price }}</span>
+                      <span class="rate-unit">{{ r.type === 'hora' ? 'por hora' : r.type === 'dia' ? 'por día' : r.type === 'semana' ? 'por semana' : 'por mes' }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- ──────────────── STEP 3 ──────────────────────────── -->
+        @if (currentStep() === 2) {
+          <div class="step-content">
+
+            <!-- Lugares -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">swap_horiz</span></div>
+                <div class="section-title">Lugares de entrega y devolución</div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <div class="field-label">Lugar de entrega</div>
+                  <div class="input-icon">
+                    <span class="material-icons">location_on</span>
+                    <input placeholder="Ej: Oficina Central, Av. 6 de Agosto" [(ngModel)]="form.pickup_location" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Lugar de devolución</div>
+                  <div class="input-icon">
+                    <span class="material-icons">location_off</span>
+                    <input placeholder="Ej: Aeropuerto El Alto" [(ngModel)]="form.return_location" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Área de circulación -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">map</span></div>
+                <div class="section-title">Área de circulación</div>
+              </div>
+              <div class="area-cards">
+                @for (area of [
+                  { id: 'local',           label: 'Local',          icon: 'location_city', desc: 'Dentro de la ciudad'  },
+                  { id: 'interprovincial', label: 'Interprovincial',icon: 'directions',    desc: 'Entre provincias'     },
+                  { id: 'extraregional',   label: 'Extrarregional', icon: 'public',        desc: 'Fuera de la región'   }
+                ]; track area.id) {
+                  <div
+                    class="area-card"
+                    [ngClass]="{ 'area-card--active': form.circulation_area === area.id }"
+                    (click)="form.circulation_area = $any(area.id)"
+                  >
+                    <div class="area-radio">
+                      @if (form.circulation_area === area.id) { <div class="area-radio-dot"></div> }
+                    </div>
+                    <span class="material-icons area-icon">{{ area.icon }}</span>
+                    <div>
+                      <div class="area-label">{{ area.label }}</div>
+                      <div class="area-desc">{{ area.desc }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Fechas / Km -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">schedule</span></div>
+                <div class="section-title">Fechas y kilometraje</div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <div class="field-label">Fecha y hora de salida</div>
+                  <div class="input-icon">
+                    <span class="material-icons">login</span>
+                    <input type="datetime-local" [(ngModel)]="form.departure_datetime" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Fecha y hora de devolución prevista</div>
+                  <div class="input-icon">
+                    <span class="material-icons">event_available</span>
+                    <input type="datetime-local" [(ngModel)]="form.expected_return" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Kilometraje de salida</div>
+                  <div class="input-icon">
+                    <span class="material-icons">speed</span>
+                    <input type="number" placeholder="km actuales en odómetro" [(ngModel)]="form.departure_km" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Combustible -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">local_gas_station</span></div>
+                <div class="section-title">Nivel de combustible de salida</div>
+              </div>
+              <div class="fuel-selector">
+                @for (f of fuelLevels; track f; let i = $index) {
+                  <button
+                    class="fuel-seg"
+                    [ngClass]="{
+                      'fuel-seg--active':  form.departure_fuel === f,
+                      'fuel-seg--filled':  fuelIsFilled(f),
+                      'fuel-seg--reserve': f === 'V',
+                      'fuel-seg--full':    f === 'F'
+                    }"
+                    (click)="selectFuel(f)"
+                  >
+                    @if (f === 'V') { <span class="material-icons fuel-icon">warning</span> }
+                    @if (f === 'F') { <span class="material-icons fuel-icon">local_gas_station</span> }
+                    @if (f !== 'V' && f !== 'F') { <span class="fuel-spacer"></span> }
+                    <span class="fuel-label">{{ f }}</span>
+                  </button>
+                }
+              </div>
+              <div class="fuel-hint">
+                Nivel seleccionado: <strong>{{ form.departure_fuel }}</strong>
+                @if (form.departure_fuel === 'V') { <span class="fuel-warn"> ⚠ Reserva mínima</span> }
+                @if (form.departure_fuel === 'F') { <span class="fuel-ok"> ✓ Tanque lleno</span> }
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ──────────────── STEP 4 ──────────────────────────── -->
+        @if (currentStep() === 3) {
+          <div class="step-content">
+
+            <!-- Coberturas -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">shield</span></div>
+                <div>
+                  <div class="section-title">Coberturas</div>
+                  <div class="section-sub">{{ form.selectedCoverageIds.length }} activa{{ form.selectedCoverageIds.length !== 1 ? 's' : '' }}</div>
+                </div>
+              </div>
+              <div class="coverage-list">
+                @for (cov of coverages(); track cov.id) {
+                  <div
+                    class="coverage-item"
+                    [ngClass]="{ 'coverage-item--active': isCoverageSelected(cov.id) }"
+                  >
+                    <div
+                      class="cov-toggle"
+                      [ngClass]="{ 'cov-toggle--on': isCoverageSelected(cov.id), 'cov-toggle--mandatory': cov.is_mandatory }"
+                      (click)="toggleCoverage(cov.id, cov.is_mandatory)"
+                    >
+                      <div class="cov-thumb"></div>
+                    </div>
+                    <div class="cov-info">
+                      <div class="cov-name-row">
+                        <span class="cov-name">{{ cov.name }}</span>
+                        @if (cov.is_mandatory) {
+                          <span class="cov-badge">OBLIGATORIA</span>
+                        }
+                      </div>
+                      <div class="cov-desc">{{ cov.description }}</div>
+                    </div>
+                    <div class="cov-price">
+                      <div class="cov-price-val" [ngClass]="{ 'cov-price-val--active': isCoverageSelected(cov.id) }">
+                        Bs. {{ cov.price_per_day }}
+                      </div>
+                      <div class="cov-price-unit">por día</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Garantía -->
+            <div class="section">
+              <div class="section-head">
+                <div class="section-icon"><span class="material-icons">credit_card</span></div>
+                <div>
+                  <div class="section-title">Garantía del contrato</div>
+                  <div class="section-sub">Datos de respaldo del alquiler</div>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <div class="field-label">Tipo de garantía</div>
+                  <select class="sel" [(ngModel)]="form.card_type">
+                    <option value="">Seleccionar tipo...</option>
+                    <option value="credito">Tarjeta de crédito</option>
+                    <option value="debito">Tarjeta de débito</option>
+                    <option value="efectivo">Garantía en efectivo</option>
+                    <option value="voucher">Voucher empresarial</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <div class="field-label">Banco emisor</div>
+                  <div class="input-icon">
+                    <span class="material-icons">account_balance</span>
+                    <input placeholder="Nombre del banco" [(ngModel)]="form.bank_name" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Número de tarjeta</div>
+                  <div class="input-icon">
+                    <span class="material-icons">credit_card</span>
+                    <input placeholder="**** **** **** ****" [(ngModel)]="form.card_number" maxlength="19" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Válido hasta</div>
+                  <div class="input-icon">
+                    <span class="material-icons">event</span>
+                    <input type="month" [(ngModel)]="form.valid_until" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Código PA</div>
+                  <div class="input-icon">
+                    <span class="material-icons">tag</span>
+                    <input placeholder="Opcional" [(ngModel)]="form.pa_code" />
+                  </div>
+                </div>
+                <div class="field">
+                  <div class="field-label">Código de seguridad</div>
+                  <div class="input-icon">
+                    <span class="material-icons">lock</span>
+                    <input placeholder="CVV / Opcional" [(ngModel)]="form.security_code" />
+                  </div>
+                </div>
+                <div class="field" style="grid-column: span 2">
+                  <div class="field-label">Valor en Bs (bolivianos)</div>
+                  <div class="input-icon">
+                    <span class="material-icons">payments</span>
+                    <input type="number" placeholder="Monto de garantía en Bs" [(ngModel)]="form.value_bs" />
+                  </div>
+                </div>
+                <div class="field" style="grid-column: span 2">
+                  <div class="field-label">Lugar de garantía</div>
+                  <div class="input-icon">
+                    <span class="material-icons">location_on</span>
+                    <input placeholder="Opcional" [(ngModel)]="form.guarantee_location" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ──────────────── STEP 5 ──────────────────────────── -->
+        @if (currentStep() === 4) {
+          <div class="step-content">
+
+            <!-- Info cards 2x2 -->
+            <div class="summary-grid">
+              <!-- Cliente -->
+              <div class="info-block">
+                <div class="ib-head">
+                  <span class="material-icons">person</span> CLIENTE
+                </div>
+                <div class="ib-body">
+                  <div class="ib-row"><span>Nombre</span><span>{{ form.client1?.full_name ?? '—' }}</span></div>
+                  <div class="ib-row"><span>CI</span><span>{{ form.client1?.ci ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Teléfono</span><span>{{ form.client1?.phone ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Ciudad</span><span>{{ form.client1?.address?.city ?? '—' }}</span></div>
+                </div>
+              </div>
+              <!-- Vehículo -->
+              <div class="info-block">
+                <div class="ib-head">
+                  <span class="material-icons">directions_car</span> VEHÍCULO
+                </div>
+                <div class="ib-body">
+                  <div class="ib-row"><span>Modelo</span><span>{{ form.vehicle ? form.vehicle.brand + ' ' + form.vehicle.model : '—' }}</span></div>
+                  <div class="ib-row"><span>Placa</span><span>{{ form.vehicle?.plate ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Tipo</span><span>{{ form.vehicle ? vehicleTypeName(form.vehicle.vehicle_type_id) : '—' }}</span></div>
+                  <div class="ib-row"><span>Tarifa</span><span>{{ form.rate ? 'Bs. ' + form.rate.price + ' / ' + form.rate.type : '—' }}</span></div>
+                  <div class="ib-row"><span>Km salida</span><span>{{ form.departure_km ? form.departure_km + ' km' : '—' }}</span></div>
+                </div>
+              </div>
+              <!-- Entrega y devolución -->
+              <div class="info-block">
+                <div class="ib-head">
+                  <span class="material-icons">place</span> ENTREGA Y DEVOLUCIÓN
+                </div>
+                <div class="ib-body">
+                  <div class="ib-row"><span>Entrega</span><span>{{ form.pickup_location || '—' }}</span></div>
+                  <div class="ib-row"><span>Devolución</span><span>{{ form.return_location || '—' }}</span></div>
+                  <div class="ib-row"><span>Fecha salida</span><span>{{ form.departure_datetime || '—' }}</span></div>
+                  <div class="ib-row"><span>Fecha retorno</span><span>{{ form.expected_return || '—' }}</span></div>
+                </div>
+              </div>
+              <!-- Otros -->
+              <div class="info-block">
+                <div class="ib-head">
+                  <span class="material-icons">info</span> OTROS DETALLES
+                </div>
+                <div class="ib-body">
+                  <div class="ib-row"><span>Área</span><span>{{ form.circulation_area }}</span></div>
+                  <div class="ib-row"><span>Combustible</span><span>{{ form.departure_fuel }}</span></div>
+                  <div class="ib-row"><span>Coberturas</span><span>{{ form.selectedCoverageIds.length }} activa{{ form.selectedCoverageIds.length !== 1 ? 's' : '' }}</span></div>
+                  <div class="ib-row"><span>Garantía</span><span>{{ form.card_type || '—' }}</span></div>
+                  <div class="ib-row"><span>Banco</span><span>{{ form.bank_name || '—' }}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cálculo estimado -->
+            @if (estimate(); as est) {
+              <div class="estimate-block">
+                <div class="est-header">
+                  <span class="material-icons">receipt_long</span>
+                  <span>Cálculo estimado del costo</span>
+                  <span class="est-meta">{{ est.days }} día{{ est.days !== 1 ? 's' : '' }} · IVA 13% aplicado</span>
+                </div>
+                <div class="est-body">
+                  <div class="est-row">
+                    <span>{{ form.vehicle?.brand }} {{ form.vehicle?.model }} × {{ est.units }} {{ form.rate?.type }}{{ est.units !== 1 ? 's' : '' }}</span>
+                    <span>{{ formatCurrency(est.subtotalRate) }}</span>
+                  </div>
+                  @for (cov of est.selectedCovs; track cov.id) {
+                    <div class="est-row">
+                      <span>{{ cov.name }} × {{ est.days }} día{{ est.days !== 1 ? 's' : '' }}</span>
+                      <span>{{ formatCurrency(cov.price_per_day * est.days) }}</span>
+                    </div>
+                  }
+                  <div class="est-row est-row--sep">
+                    <span><strong>Subtotal</strong></span>
+                    <span><strong>{{ formatCurrency(est.subtotal) }}</strong></span>
+                  </div>
+                  <div class="est-row">
+                    <span>IVA (13%)</span>
+                    <span>{{ formatCurrency(est.vat) }}</span>
+                  </div>
+                  <div class="est-row est-row--total">
+                    <span>TOTAL A PAGAR</span>
+                    <span>{{ formatCurrency(est.grandTotal) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Error -->
+            @if (submitError()) {
+              <div class="submit-error">
+                <span class="material-icons">error</span>
+                {{ submitError() }}
+              </div>
+            }
+
+            <!-- Confirm button -->
+            <div class="confirm-wrap">
+              <button
+                class="btn-confirm"
+                [disabled]="submitting()"
+                (click)="confirm()"
+              >
+                @if (submitting()) {
+                  <div class="spinner-sm spinner-sm--dark"></div>
+                  Creando contrato...
+                } @else {
+                  <span class="material-icons">check_circle</span>
+                  Confirmar Contrato
+                }
+              </button>
+            </div>
+
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Footer navigation -->
+  <div class="step-footer">
+    <button
+      class="btn-prev"
+      [disabled]="currentStep() === 0"
+      (click)="prev()"
+    >
+      <span class="material-icons">arrow_back</span>
+      Anterior
+    </button>
+
+    <div class="step-progress">
+      <span class="prog-label">{{ currentStep() + 1 }} / {{ steps.length }}</span>
+      <div class="prog-dots">
+        @for (s of steps; track $index; let i = $index) {
+          <div
+            class="prog-dot"
+            [ngClass]="{
+              'prog-dot--active': i === currentStep(),
+              'prog-dot--done':   i < currentStep()
+            }"
+          ></div>
+        }
+      </div>
+    </div>
+
+    @if (currentStep() < steps.length - 1) {
+      <button
+        class="btn-next"
+        [ngClass]="{ 'btn-next--disabled': !canNext()[currentStep()] }"
+        (click)="next()"
+      >
+        Siguiente
+        <span class="material-icons">arrow_forward</span>
+      </button>
+    } @else {
+      <div style="width:140px"></div>
+    }
+  </div>
+}

@@ -1,4 +1,79 @@
-/* You can add global styles to this file, and also import other style files */
+/* ─── Reset & base ─────────────────────────────────────────── */
+html, body { height: 100%; margin: 0; }
+body { font-family: Roboto, 'Helvetica Neue', sans-serif; background: #F5F5F5; }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* ─── Design tokens ────────────────────────────────────────── */
+:root {
+  --color-sidebar:  #0A0A0A;
+  --color-accent:   #F5C000;
+  --color-bg:       #F5F5F5;
+  --color-surface:  #FFFFFF;
+  --color-ink:      #0A0A0A;
+  --color-text-pri: #212121;
+  --color-text-sec: #757575;
+  --color-divider:  #EEEEEE;
+  --color-row-hov:  #FAFAFA;
+  --sidebar-width:  240px;
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #DEDEDE; border-radius: 3px; }
+
+/* ─── Angular Material overrides ───────────────────────────── */
+
+/* Botón primario amarillo */
+.btn-accent {
+  background-color: var(--color-accent) !important;
+  color: var(--color-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(245, 192, 0, 0.45) !important;
+}
+.btn-accent:hover {
+  box-shadow: 0 4px 14px rgba(245, 192, 0, 0.6) !important;
+}
+
+/* Botón outline */
+.btn-outline {
+  background: none !important;
+  border: 1px solid #E0E0E0 !important;
+  color: var(--color-text-sec) !important;
+  font-weight: 500 !important;
+}
+
+/* mat-form-field: quitar padding extra */
+.mat-mdc-form-field-subscript-wrapper { display: none !important; }
+
+/* Tabla sin fondo extra */
+.mat-mdc-table { background: transparent !important; }
+
+/* mat-tab sin borde bottom por defecto */
+.mat-mdc-tab-header { border-bottom: 1px solid var(--color-divider); }
+.mat-mdc-tab.mdc-tab--active .mdc-tab-indicator__content--underline {
+  border-color: var(--color-accent) !important;
+}
+.mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+  color: var(--color-ink) !important;
+}
+
+/* mat-stepper custom */
+.mat-step-header .mat-step-icon-selected,
+.mat-step-header .mat-step-icon-state-done {
+  background-color: var(--color-accent) !important;
+  color: var(--color-ink) !important;
+}
+
+/* mat-slide-toggle accent */
+.mat-mdc-slide-toggle.toggle-accent .mdc-switch:enabled .mdc-switch__track::after {
+  background: var(--color-accent) !important;
+}
+.mat-mdc-slide-toggle.toggle-accent .mdc-switch--selected:enabled .mdc-switch__handle::after {
+  background: #fff !important;
+}
+
+/* Chips de estado */
+.chip-activo    { background: #E8F5E9 !important; color: #2E7D32 !important; }
+.chip-cerrado   { background: #F5F5F5 !important; color: #616161 !important; }
+.chip-pendiente { background: #FFF8E1 !important; color: #E65100 !important; }
