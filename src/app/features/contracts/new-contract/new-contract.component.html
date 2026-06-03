@@ -294,6 +294,35 @@
               </div>
             </div>
 
+            <!-- Acumulador de precio en tiempo real -->
+            @if (priceAccumulator().typeItems.length > 0 || priceAccumulator().rateItem) {
+              <div class="price-accum">
+                <div class="price-accum-items">
+                  @for (item of priceAccumulator().typeItems; track $index; let i = $index) {
+                    @if (i > 0) { <span class="price-accum-sep">+</span> }
+                    <div class="price-accum-item">
+                      <span class="price-accum-label">{{ item.label }}</span>
+                      <span class="price-accum-val">Bs. {{ item.price.toFixed(2) }}</span>
+                    </div>
+                  }
+                  @if (priceAccumulator().rateItem) {
+                    <span class="price-accum-sep">+</span>
+                    <div class="price-accum-item price-accum-item--rate">
+                      <span class="price-accum-label">{{ priceAccumulator().rateItem!.label }}</span>
+                      <span class="price-accum-val">Bs. {{ priceAccumulator().rateItem!.price.toFixed(2) }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="price-accum-total">
+                  <span class="price-accum-total-label">Total estimado</span>
+                  <span class="price-accum-total-val">Bs. {{ priceAccumulator().total.toFixed(2) }}</span>
+                  @if (priceAccumulator().rateItem) {
+                    <span class="price-accum-unit">/ {{ form().rate?.type }}</span>
+                  }
+                </div>
+              </div>
+            }
+
             <!-- Grid de vehículos -->
             <div class="section">
               <div class="vehicle-count">

@@ -73,6 +73,22 @@ export class NewContractComponent implements OnInit {
     return this.vehicles().filter(v => v.vehicleType?.id === lid);
   });
 
+  /* ── step 2: real-time price accumulator ─────────────── */
+  readonly priceAccumulator = computed(() => {
+    const types   = this.selectedTypes();
+    const rate    = this.form().rate;
+
+    const typeItems = types.map(t => ({ label: t.name, price: Number(t.price) }));
+    const typesTotal = typeItems.reduce((s, i) => s + i.price, 0);
+
+    const rateItem = rate
+      ? { label: this.rateLabel(rate.type), price: Number(rate.price) }
+      : null;
+
+    const total = typesTotal + (rateItem?.price ?? 0);
+    return { typeItems, rateItem, typesTotal, total };
+  });
+
   /* ── step 5: estimated cost ─────────────────────────── */
   readonly estimate = computed(() => {
     const f    = this.form();
