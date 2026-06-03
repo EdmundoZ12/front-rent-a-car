@@ -76,14 +76,14 @@
             <div class="info-section">
               <div class="info-sec-head"><span class="material-icons">description</span> CONTRATO</div>
               <div class="info-row"><span>N° Contrato</span><span class="mono">{{ contractCode() }}</span></div>
-              <div class="info-row"><span>Fecha apertura</span><span>{{ fmtDate(contract()!.created_at) }}</span></div>
+              <div class="info-row"><span>Fecha apertura</span><span>{{ fmtDate(contract()!.opened_at) }}</span></div>
             </div>
             <div class="divider"></div>
 
             <div class="info-section">
               <div class="info-sec-head"><span class="material-icons">person</span> CLIENTE</div>
               <div class="info-row"><span>Nombre</span><span>{{ clientName() }}</span></div>
-              <div class="info-row"><span>C.I.</span><span class="mono">{{ contract()!.client1?.ci ?? '—' }}</span></div>
+              <div class="info-row"><span>C.I.</span><span class="mono">{{ contract()!.client1?.id_card ?? '—' }}</span></div>
             </div>
             <div class="divider"></div>
 
@@ -97,7 +97,7 @@
             <div class="info-section">
               <div class="info-sec-head"><span class="material-icons">sell</span> TARIFA CONTRATADA</div>
               <div class="info-row"><span>Tipo</span><span>{{ contract()!.rate?.type ?? '—' }}</span></div>
-              <div class="info-row"><span>Precio</span><span class="accent">Bs. {{ contract()!.rate?.price?.toFixed(2) ?? '—' }} / {{ contract()!.rate?.type }}</span></div>
+              <div class="info-row"><span>Precio</span><span class="accent">Bs. {{ (+contract()!.rate!.price).toFixed(2) }} / {{ contract()!.rate?.type }}</span></div>
             </div>
             <div class="divider"></div>
 
@@ -123,12 +123,12 @@
             </div>
             <div class="divider"></div>
 
-            @if (contract()!.coverages?.length) {
+            @if (contract()!.contractCoverages?.length) {
               <div class="info-section">
                 <div class="info-sec-head"><span class="material-icons">shield</span> COBERTURAS ACTIVAS</div>
                 <div class="cov-chips">
-                  @for (cov of contract()!.coverages; track cov.id) {
-                    <span class="cov-chip">{{ cov.name }}</span>
+                  @for (cc of contract()!.contractCoverages; track cc.id) {
+                    <span class="cov-chip">{{ cc.coverage.name }}</span>
                   }
                 </div>
               </div>
@@ -286,7 +286,7 @@
               <div class="metric-col">
                 <div class="metric-label">Subtotal Tarifas</div>
                 <div class="metric-value">Bs. {{ fmt(l.subtTarifa) }}</div>
-                <div class="metric-sub">{{ l.days }} día{{ l.days !== 1 ? 's' : '' }} × Bs. {{ contract()!.rate?.price?.toFixed(2) }}/{{ contract()!.rate?.type }}</div>
+                <div class="metric-sub">{{ l.days }} día{{ l.days !== 1 ? 's' : '' }} × Bs. {{ (+contract()!.rate!.price).toFixed(2) }}/{{ contract()!.rate?.type }}</div>
               </div>
               <div class="metric-col">
                 <div class="metric-label">Combustible</div>

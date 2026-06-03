@@ -84,9 +84,10 @@ export class NewContractComponent implements OnInit {
       const subtypeIds = this.vehicleTypes()
         .filter(v => v.parent_id === tid)
         .map(v => v.id);
-      list = list.filter(v =>
-        v.vehicle_type_id === tid || subtypeIds.includes(v.vehicle_type_id)
-      );
+      list = list.filter(v => {
+        const vtid = v.vehicle_type_id;
+        return vtid !== undefined && (vtid === tid || subtypeIds.includes(vtid));
+      });
     }
     if (sid) list = list.filter(v => v.vehicle_type_id === sid);
     return list;
@@ -110,18 +111,18 @@ export class NewContractComponent implements OnInit {
 
     let units: number;
     switch (rate.type) {
-      case 'hora':   units = Math.ceil(days * 24); break;
-      case 'semana': units = Math.ceil(days / 7);  break;
-      case 'mes':    units = Math.ceil(days / 30); break;
-      default:       units = days;
+      case 'hour':  units = Math.ceil(days * 24); break;
+      case 'week':  units = Math.ceil(days / 7);  break;
+      case 'month': units = Math.ceil(days / 30); break;
+      default:      units = days;                  // 'day'
     }
 
     // Precio árbol vehicle_type: suma desde nodo hasta raíz
-    const typePrices = this.buildTypeChain(v.vehicle_type_id);
+    const typePrices = this.buildTypeChain(v.vehicle_type_id ?? 0);
 
-    const subtotalRate     = rate.price * units + typePrices;
+    const subtotalRate     = Number(rate.price) * units + typePrices;
     const selectedCovs     = this.coverages().filter(c => this.form.selectedCoverageIds.includes(c.id));
-    const subtotalCoverage = selectedCovs.reduce((s, c) => s + c.price_per_day * days, 0);
+    const subtotalCoverage = selectedCovs.reduce((s, c) => s + Number(c.price_per_day) * days, 0);
     const subtotal         = subtotalRate + subtotalCoverage;
     const vat              = subtotal * 0.13;
     const stampTax         = 0;
@@ -241,7 +242,7 @@ export class NewContractComponent implements OnInit {
   }
 
   rateLabel(type: string): string {
-    const map: Record<string, string> = { hora: 'Por hora', dia: 'Por día', semana: 'Por semana', mes: 'Por mes' };
+    const map: Record<string, string> = { hour: 'Por hora', day: 'Por día', week: 'Por semana', month: 'Por mes' };
     return map[type] ?? type;
   }
 
@@ -321,7 +322,7 @@ export class NewContractComponent implements OnInit {
     let total = 0;
     let current = types.find(t => t.id === typeId);
     while (current) {
-      total += current.price;
+      total += Number(current.price);
       current = types.find(t => t.id === current!.parent_id);
     }
     return total;

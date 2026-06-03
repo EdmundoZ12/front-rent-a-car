@@ -485,14 +485,14 @@ export class ContractListComponent implements OnInit {
     this.contracts().map(c => ({
       id:       c.id,
       code:     `CON-${String(c.id).padStart(4, '0')}`,
-      cliente:  c.client1 ? `${c.client1.first_name} ${c.client1.last_name}` : `Cliente #${c.client1_id}`,
-      vehiculo: c.vehicle ? `${c.vehicle.brand} ${c.vehicle.model}` : `Vehículo #${c.vehicle_id}`,
+      cliente:  c.client1?.full_name ?? `Cliente #${c.id}`,
+      vehiculo: c.vehicle ? `${c.vehicle.brand} ${c.vehicle.vehicleType?.name ?? ''}`.trim() : '—',
       placa:    c.vehicle?.plate ?? '—',
-      inicio:   this.formatDate(c.created_at),
+      inicio:   this.formatDate(c.opened_at),
       fin:      this.formatDate(c.expected_return),
-      dias:     this.calcDays(c.created_at, c.expected_return),
+      dias:     this.calcDays(c.opened_at, c.expected_return),
       estado:   c.status,
-      monto:    c.settlement ? `Bs. ${c.settlement.grand_total.toFixed(2)}` : '—',
+      monto:    c.settlement ? `Bs. ${Number(c.settlement.grand_total).toFixed(2)}` : '—',
       raw:      c,
     }))
   );
