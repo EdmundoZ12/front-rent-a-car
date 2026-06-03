@@ -513,3 +513,47 @@
 }
 .spinner-sm--dark { border-color: rgba(0,0,0,0.2); border-top-color: var(--color-ink); }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Cascade type selector ─────────────────────────────────── */
+.cascade-wrap {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 14px;
+}
+.cascade-level {
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.cascade-arrow {
+  color: #BDBDBD; font-size: 20px; margin-top: 8px; flex-shrink: 0;
+}
+.cascade-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.cascade-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 14px; border-radius: 20px; font-size: 13px;
+  font-weight: 500; border: 1.5px solid #E0E0E0;
+  background: #FAFAFA; color: #424242; cursor: pointer;
+  transition: all .15s; line-height: 1;
+}
+.cascade-chip:hover {
+  border-color: var(--color-accent); background: #FFFDE7; color: var(--color-ink);
+}
+.cascade-chip--active {
+  background: var(--color-accent); border-color: var(--color-accent);
+  color: #0A0A0A; font-weight: 600;
+}
+.cascade-chip-arrow, .cascade-chip-leaf {
+  font-size: 14px; opacity: .7;
+}
+.cascade-leaf-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: #E8F5E9; color: #388E3C;
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 10px; margin-left: 8px; vertical-align: middle;
+}
+.cascade-clear {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px;
+  border: 1px solid #E0E0E0; background: #FFF; color: #757575;
+  cursor: pointer; margin-left: auto;
+}
+.cascade-clear:hover { background: #FFEBEE; color: #E53935; border-color: #EF9A9A; }
