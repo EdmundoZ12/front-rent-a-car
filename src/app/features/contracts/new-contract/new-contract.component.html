@@ -244,41 +244,53 @@
         @if (currentStep() === 1) {
           <div class="step-content">
 
-            <!-- Árbol de selección -->
+            <!-- Árbol de selección dinámica en cascada -->
             <div class="section">
               <div class="section-head">
                 <div class="section-icon"><span class="material-icons">account_tree</span></div>
                 <div>
-                  <div class="section-title">Árbol de selección</div>
-                  <div class="section-sub">Tipo → Subtipo → Modelo disponible</div>
+                  <div class="section-title">Filtrar por tipo de vehículo</div>
+                  <div class="section-sub">
+                    @if (selectedTypes().length === 0) {
+                      Selecciona una categoría para ver los vehículos disponibles
+                    } @else {
+                      {{ cascadePath() }}
+                      @if (leafTypeId()) { <span class="cascade-leaf-badge"><span class="material-icons" style="font-size:13px">check_circle</span> Categoría seleccionada</span> }
+                    }
+                  </div>
                 </div>
+                @if (selectedTypes().length > 0) {
+                  <button class="cascade-clear" (click)="clearTypeCascade()">
+                    <span class="material-icons">close</span> Limpiar
+                  </button>
+                }
               </div>
-              <div class="grid-3">
-                <div class="field">
-                  <div class="field-label">Tipo de vehículo</div>
-                  <select class="sel" (change)="setFilterType(+$any($event.target).value || null)">
-                    <option value="">Todos los tipos</option>
-                    @for (t of rootTypes(); track t.id) {
-                      <option [value]="t.id">{{ t.name }}</option>
+
+              <!-- Cascade selectors — one per level -->
+              <div class="cascade-wrap">
+                @for (level of typeLevels(); track $index; let i = $index) {
+                  <div class="cascade-level">
+                    @if (i > 0) {
+                      <span class="material-icons cascade-arrow">chevron_right</span>
                     }
-                  </select>
-                </div>
-                <div class="field">
-                  <div class="field-label">Subtipo</div>
-                  <select class="sel" [disabled]="!filterTypeId()" (change)="setFilterSubtype(+$any($event.target).value || null)">
-                    <option value="">Todos</option>
-                    @for (s of subtypes(); track s.id) {
-                      <option [value]="s.id">{{ s.name }}</option>
-                    }
-                  </select>
-                </div>
-                <div class="field">
-                  <div class="field-label">Disponibilidad</div>
-                  <select class="sel">
-                    <option value="">Todos</option>
-                    <option value="1">Disponibles</option>
-                  </select>
-                </div>
+                    <div class="cascade-chips">
+                      @for (t of level; track t.id) {
+                        <button
+                          class="cascade-chip"
+                          [ngClass]="{ 'cascade-chip--active': isTypeSelected(i, t) }"
+                          (click)="selectTypeLevel(i, t)"
+                        >
+                          {{ t.name }}
+                          @if (t.children && t.children.length > 0) {
+                            <span class="material-icons cascade-chip-arrow">chevron_right</span>
+                          } @else {
+                            <span class="material-icons cascade-chip-leaf">directions_car</span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             </div>
 

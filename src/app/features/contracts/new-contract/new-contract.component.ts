@@ -43,7 +43,6 @@ export class NewContractComponent implements OnInit {
   form = signal<NewContractFormState>({ ...INITIAL_FORM_STATE });
 
   /* ── catalog data ───────────────────────────────────── */
-  vehicleTypes = signal<VehicleType[]>([]);
   vehicles     = signal<Vehicle[]>([]);
   rates        = signal<Rate[]>([]);
   coverages    = signal<Coverage[]>([]);
@@ -62,35 +61,16 @@ export class NewContractComponent implements OnInit {
   requesterPhone = '';
   requesterCel  = '';
 
-  /* ── step 2: vehicle filter ─────────────────────────── */
-  filterTypeId    = signal<number | null>(null);
-  filterSubtypeId = signal<number | null>(null);
-
-  readonly rootTypes = computed(() =>
-    this.vehicleTypes().filter(v => v.parent_id === null)
-  );
-
-  readonly subtypes = computed(() => {
-    const pid = this.filterTypeId();
-    if (!pid) return [];
-    return this.vehicleTypes().filter(v => v.parent_id === pid);
-  });
+  /* ── step 2: vehicle type cascade (dynamic N levels) ─── */
+  typeTree      = signal<VehicleType[]>([]);   // roots from /tree
+  typeLevels    = signal<VehicleType[][]>([]); // each level's options
+  selectedTypes = signal<VehicleType[]>([]);   // selected at each level
+  leafTypeId    = signal<number | null>(null); // final selected leaf id
 
   readonly filteredVehicles = computed(() => {
-    let list = this.vehicles();
-    const tid = this.filterTypeId();
-    const sid = this.filterSubtypeId();
-    if (tid) {
-      const subtypeIds = this.vehicleTypes()
-        .filter(v => v.parent_id === tid)
-        .map(v => v.id);
-      list = list.filter(v => {
-        const vtid = v.vehicle_type_id;
-        return vtid !== undefined && (vtid === tid || subtypeIds.includes(vtid));
-      });
-    }
-    if (sid) list = list.filter(v => v.vehicle_type_id === sid);
-    return list;
+    const lid = this.leafTypeId();
+    if (!lid) return this.vehicles();
+    return this.vehicles().filter(v => v.vehicle_type_id === lid);
   });
 
   /* ── step 5: estimated cost ─────────────────────────── */
@@ -155,13 +135,14 @@ export class NewContractComponent implements OnInit {
   async ngOnInit() {
     this.loading.set(true);
     try {
-      const [types, vehs, rates, covs] = await Promise.all([
-        this.catalogSvc.getVehicleTypes(),
+      const [tree, vehs, rates, covs] = await Promise.all([
+        this.catalogSvc.getVehicleTypesTree(),
         this.vehicleSvc.getAll(),
         this.catalogSvc.getRates(),
         this.catalogSvc.getCoverages(),
       ]);
-      this.vehicleTypes.set(types);
+      this.typeTree.set(tree);
+      this.typeLevels.set(tree.length ? [tree] : []);
       this.vehicles.set(vehs);
       this.rates.set(rates);
       this.coverages.set(covs);
@@ -222,16 +203,42 @@ export class NewContractComponent implements OnInit {
     this.form.update(f => ({ ...f, differentDriver: val, client2: val ? f.client2 : null }));
   }
 
-  /* ── step 2: vehicle & rate ─────────────────────────── */
-  setFilterType(id: number | null) {
-    this.filterTypeId.set(id);
-    this.filterSubtypeId.set(null);
-    this.form.update(f => ({ ...f, vehicle: null, vehicleTypeId: id, vehicleSubtypeId: null }));
+  /* ── step 2: cascade type selector ─────────────────── */
+  selectTypeLevel(levelIndex: number, type: VehicleType) {
+    // Truncate selections and levels beyond current
+    const newSelected = this.selectedTypes().slice(0, levelIndex);
+    newSelected[levelIndex] = type;
+    this.selectedTypes.set(newSelected);
+
+    const hasChildren = type.children && type.children.length > 0;
+    if (hasChildren) {
+      // Add next level with children, clear levels beyond
+      const newLevels = this.typeLevels().slice(0, levelIndex + 1);
+      newLevels[levelIndex + 1] = type.children!;
+      this.typeLevels.set(newLevels);
+      this.leafTypeId.set(null);
+      this.form.update(f => ({ ...f, vehicle: null, rate: null }));
+    } else {
+      // Leaf node — remove any deeper levels, show vehicles
+      this.typeLevels.set(this.typeLevels().slice(0, levelIndex + 1));
+      this.leafTypeId.set(type.id);
+      this.form.update(f => ({ ...f, vehicle: null, rate: null }));
+    }
   }
 
-  setFilterSubtype(id: number | null) {
-    this.filterSubtypeId.set(id);
-    this.form.update(f => ({ ...f, vehicleSubtypeId: id, vehicle: null }));
+  clearTypeCascade() {
+    this.typeLevels.set(this.typeTree().length ? [this.typeTree()] : []);
+    this.selectedTypes.set([]);
+    this.leafTypeId.set(null);
+    this.form.update(f => ({ ...f, vehicle: null, rate: null }));
+  }
+
+  isTypeSelected(levelIndex: number, type: VehicleType): boolean {
+    return this.selectedTypes()[levelIndex]?.id === type.id;
+  }
+
+  cascadePath(): string {
+    return this.selectedTypes().map(t => t.name).join(' → ');
   }
 
   selectVehicle(v: Vehicle) {
@@ -320,8 +327,20 @@ export class NewContractComponent implements OnInit {
   }
 
   /* ── helpers ────────────────────────────────────────── */
+  private flatTypes(): VehicleType[] {
+    const result: VehicleType[] = [];
+    const flatten = (nodes: VehicleType[]) => {
+      for (const n of nodes) {
+        result.push(n);
+        if (n.children?.length) flatten(n.children);
+      }
+    };
+    flatten(this.typeTree());
+    return result;
+  }
+
   private buildTypeChain(typeId: number): number {
-    const types = this.vehicleTypes();
+    const types = this.flatTypes();
     let total = 0;
     let current = types.find(t => t.id === typeId);
     while (current) {
@@ -332,7 +351,7 @@ export class NewContractComponent implements OnInit {
   }
 
   vehicleTypeName(id: number): string {
-    return this.vehicleTypes().find(t => t.id === id)?.name ?? '';
+    return this.flatTypes().find(t => t.id === id)?.name ?? '';
   }
 
   patchForm(patch: Partial<NewContractFormState>) {
