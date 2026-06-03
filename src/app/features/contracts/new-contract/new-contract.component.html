@@ -88,17 +88,17 @@
               </div>
 
               <div class="search-wrap" style="position:relative">
-                <div class="search-field" [ngClass]="{ 'search-field--selected': !!form.client1 }">
+                <div class="search-field" [ngClass]="{ 'search-field--selected': !!form().client1 }">
                   <span class="material-icons sf-icon">search</span>
                   <input
-                    [value]="form.client1 ? form.client1.full_name! : searchQuery"
-                    [readOnly]="!!form.client1"
+                    [value]="form().client1 ? form().client1!.full_name! : searchQuery"
+                    [readOnly]="!!form().client1"
                     (input)="searchQuery = $any($event.target).value; onSearchInput()"
                     (focus)="searchQuery && showDropdown.set(true)"
                     (blur)="hideDropdown()"
                     placeholder="Buscar por nombre o cédula de identidad..."
                   />
-                  @if (form.client1 || searchQuery) {
+                  @if (form().client1 || searchQuery) {
                     <button class="sf-clear" (mousedown)="clearClient()">
                       <span class="material-icons">close</span>
                     </button>
@@ -106,7 +106,7 @@
                 </div>
 
                 <!-- Dropdown resultados -->
-                @if (showDropdown() && !form.client1) {
+                @if (showDropdown() && !form().client1) {
                   <div class="search-dropdown">
                     @if (searching()) {
                       <div class="dd-loading">
@@ -137,18 +137,18 @@
               </div>
 
               <!-- Selected card -->
-              @if (form.client1) {
+              @if (form().client1) {
                 <div class="client-card">
-                  <div class="cc-avatar" [style.background]="avatarBg(form.client1.full_name!)" [style.color]="avatarColor(form.client1.full_name!)">
-                    {{ initials(form.client1.full_name!) }}
+                  <div class="cc-avatar" [style.background]="avatarBg(form().client1!.full_name!)" [style.color]="avatarColor(form().client1!.full_name!)">
+                    {{ initials(form().client1!.full_name!) }}
                   </div>
                   <div class="cc-info">
-                    <div class="cc-name">{{ form.client1.full_name }}</div>
+                    <div class="cc-name">{{ form().client1!.full_name }}</div>
                     <div class="cc-meta">
-                      @if (form.client1.id_card) { <span>CI: <strong>{{ form.client1.id_card }}</strong></span> }
-                      @if (form.client1.phone) { <span>☎ {{ form.client1.phone }}</span> }
+                      @if (form().client1!.id_card) { <span>CI: <strong>{{ form().client1!.id_card }}</strong></span> }
+                      @if (form().client1!.phone) { <span>☎ {{ form().client1!.phone }}</span> }
 
-                      @if (form.client1.address) { <span>📍 {{ form.client1.address }}</span> }
+                      @if (form().client1!.address) { <span>📍 {{ form().client1!.address }}</span> }
                     </div>
                   </div>
                   <div class="cc-check">
@@ -168,12 +168,12 @@
               <label class="checkbox-label">
                 <input
                   type="checkbox"
-                  [checked]="form.differentDriver"
+                  [checked]="form().differentDriver"
                   (change)="toggleDifferentDriver($any($event.target).checked)"
                 />
                 El conductor es diferente al cliente
               </label>
-              @if (form.differentDriver) {
+              @if (form().differentDriver) {
                 <div class="grid-3 mt-12">
                   <div class="field">
                     <div class="field-label">Nombre completo</div>
@@ -286,8 +286,8 @@
             <div class="section">
               <div class="vehicle-count">
                 {{ filteredVehicles().length }} vehículos
-                @if (form.vehicle) {
-                  · <span style="color:var(--color-accent);font-weight:500">Seleccionado: {{ form.vehicle.brand }} {{ form.vehicle.model }}</span>
+                @if (form().vehicle) {
+                  · <span style="color:var(--color-accent);font-weight:500">Seleccionado: {{ form().vehicle!.brand }} {{ form().vehicle!.model }}</span>
                 }
               </div>
 
@@ -302,10 +302,10 @@
                 @for (v of filteredVehicles(); track v.id) {
                   <div
                     class="vehicle-card"
-                    [ngClass]="{ 'vehicle-card--selected': form.vehicle?.id === v.id, 'vehicle-card--unavailable': v.available === false }"
+                    [ngClass]="{ 'vehicle-card--selected': form().vehicle?.id === v.id, 'vehicle-card--unavailable': v.available === false }"
                     (click)="v.available !== false && selectVehicle(v)"
                   >
-                    @if (form.vehicle?.id === v.id) {
+                    @if (form().vehicle?.id === v.id) {
                       <div class="vc-badge vc-badge--selected">✓ ELEGIDO</div>
                     }
                     @if (v.available === false) {
@@ -327,20 +327,20 @@
             </div>
 
             <!-- Selector tarifa -->
-            @if (form.vehicle) {
+            @if (form().vehicle) {
               <div class="section rate-section">
                 <div class="section-head">
                   <div class="section-icon"><span class="material-icons">sell</span></div>
                   <div>
                     <div class="section-title">Tipo de tarifa</div>
-                    <div class="section-sub">{{ form.vehicle.brand }} {{ form.vehicle.model }} · {{ form.vehicle.plate }}</div>
+                    <div class="section-sub">{{ form().vehicle!.brand }} {{ form().vehicle!.model }} · {{ form().vehicle!.plate }}</div>
                   </div>
                 </div>
                 <div class="rate-buttons">
                   @for (r of rates(); track r.id) {
                     <button
                       class="rate-btn"
-                      [ngClass]="{ 'rate-btn--active': form.rate?.id === r.id }"
+                      [ngClass]="{ 'rate-btn--active': form().rate?.id === r.id }"
                       (click)="selectRate(r)"
                     >
                       <span class="rate-label">{{ rateLabel(r.type) }}</span>
@@ -370,14 +370,14 @@
                   <div class="field-label">Lugar de entrega</div>
                   <div class="input-icon">
                     <span class="material-icons">location_on</span>
-                    <input placeholder="Ej: Oficina Central, Av. 6 de Agosto" [(ngModel)]="form.pickup_location" />
+                    <input placeholder="Ej: Oficina Central, Av. 6 de Agosto" [ngModel]="form().pickup_location" (ngModelChange)="patchForm({pickup_location:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Lugar de devolución</div>
                   <div class="input-icon">
                     <span class="material-icons">location_off</span>
-                    <input placeholder="Ej: Aeropuerto El Alto" [(ngModel)]="form.return_location" />
+                    <input placeholder="Ej: Aeropuerto El Alto" [ngModel]="form().return_location" (ngModelChange)="patchForm({return_location:$event})" />
                   </div>
                 </div>
               </div>
@@ -397,11 +397,11 @@
                 ]; track area.id) {
                   <div
                     class="area-card"
-                    [ngClass]="{ 'area-card--active': form.circulation_area === area.id }"
-                    (click)="form.circulation_area = $any(area.id)"
+                    [ngClass]="{ 'area-card--active': form().circulation_area === area.id }"
+                    (click)="form().circulation_area = $any(area.id)"
                   >
                     <div class="area-radio">
-                      @if (form.circulation_area === area.id) { <div class="area-radio-dot"></div> }
+                      @if (form().circulation_area === area.id) { <div class="area-radio-dot"></div> }
                     </div>
                     <span class="material-icons area-icon">{{ area.icon }}</span>
                     <div>
@@ -424,21 +424,21 @@
                   <div class="field-label">Fecha y hora de salida</div>
                   <div class="input-icon">
                     <span class="material-icons">login</span>
-                    <input type="datetime-local" [(ngModel)]="form.departure_datetime" />
+                    <input type="datetime-local" [ngModel]="form().departure_datetime" (ngModelChange)="patchForm({departure_datetime:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Fecha y hora de devolución prevista</div>
                   <div class="input-icon">
                     <span class="material-icons">event_available</span>
-                    <input type="datetime-local" [(ngModel)]="form.expected_return" />
+                    <input type="datetime-local" [ngModel]="form().expected_return" (ngModelChange)="patchForm({expected_return:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Kilometraje de salida</div>
                   <div class="input-icon">
                     <span class="material-icons">speed</span>
-                    <input type="number" placeholder="km actuales en odómetro" [(ngModel)]="form.departure_km" />
+                    <input type="number" placeholder="km actuales en odómetro" [ngModel]="form().departure_km" (ngModelChange)="patchForm({departure_km:+$event})" />
                   </div>
                 </div>
               </div>
@@ -455,7 +455,7 @@
                   <button
                     class="fuel-seg"
                     [ngClass]="{
-                      'fuel-seg--active':  form.departure_fuel === f,
+                      'fuel-seg--active':  form().departure_fuel === f,
                       'fuel-seg--filled':  fuelIsFilled(f),
                       'fuel-seg--reserve': f === 'V',
                       'fuel-seg--full':    f === 'F'
@@ -470,9 +470,9 @@
                 }
               </div>
               <div class="fuel-hint">
-                Nivel seleccionado: <strong>{{ form.departure_fuel }}</strong>
-                @if (form.departure_fuel === 'V') { <span class="fuel-warn"> ⚠ Reserva mínima</span> }
-                @if (form.departure_fuel === 'F') { <span class="fuel-ok"> ✓ Tanque lleno</span> }
+                Nivel seleccionado: <strong>{{ form().departure_fuel }}</strong>
+                @if (form().departure_fuel === 'V') { <span class="fuel-warn"> ⚠ Reserva mínima</span> }
+                @if (form().departure_fuel === 'F') { <span class="fuel-ok"> ✓ Tanque lleno</span> }
               </div>
             </div>
 
@@ -489,7 +489,7 @@
                 <div class="section-icon"><span class="material-icons">shield</span></div>
                 <div>
                   <div class="section-title">Coberturas</div>
-                  <div class="section-sub">{{ form.selectedCoverageIds.length }} activa{{ form.selectedCoverageIds.length !== 1 ? 's' : '' }}</div>
+                  <div class="section-sub">{{ form().selectedCoverageIds.length }} activa{{ form().selectedCoverageIds.length !== 1 ? 's' : '' }}</div>
                 </div>
               </div>
               <div class="coverage-list">
@@ -537,7 +537,7 @@
               <div class="grid-2">
                 <div class="field">
                   <div class="field-label">Tipo de garantía</div>
-                  <select class="sel" [(ngModel)]="form.card_type">
+                  <select class="sel" [ngModel]="form().card_type" (ngModelChange)="patchForm({card_type:$event})">
                     <option value="">Seleccionar tipo...</option>
                     <option value="credito">Tarjeta de crédito</option>
                     <option value="debito">Tarjeta de débito</option>
@@ -549,49 +549,49 @@
                   <div class="field-label">Banco emisor</div>
                   <div class="input-icon">
                     <span class="material-icons">account_balance</span>
-                    <input placeholder="Nombre del banco" [(ngModel)]="form.bank_name" />
+                    <input placeholder="Nombre del banco" [ngModel]="form().bank_name" (ngModelChange)="patchForm({bank_name:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Número de tarjeta</div>
                   <div class="input-icon">
                     <span class="material-icons">credit_card</span>
-                    <input placeholder="**** **** **** ****" [(ngModel)]="form.card_number" maxlength="19" />
+                    <input placeholder="**** **** **** ****" [ngModel]="form().card_number" (ngModelChange)="patchForm({card_number:$event})" maxlength="19" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Válido hasta</div>
                   <div class="input-icon">
                     <span class="material-icons">event</span>
-                    <input type="month" [(ngModel)]="form.valid_until" />
+                    <input type="month" [ngModel]="form().valid_until" (ngModelChange)="patchForm({valid_until:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Código PA</div>
                   <div class="input-icon">
                     <span class="material-icons">tag</span>
-                    <input placeholder="Opcional" [(ngModel)]="form.pa_code" />
+                    <input placeholder="Opcional" [ngModel]="form().pa_code" (ngModelChange)="patchForm({pa_code:$event})" />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Código de seguridad</div>
                   <div class="input-icon">
                     <span class="material-icons">lock</span>
-                    <input placeholder="CVV / Opcional" [(ngModel)]="form.security_code" />
+                    <input placeholder="CVV / Opcional" [ngModel]="form().security_code" (ngModelChange)="patchForm({security_code:$event})" />
                   </div>
                 </div>
                 <div class="field" style="grid-column: span 2">
                   <div class="field-label">Valor en Bs (bolivianos)</div>
                   <div class="input-icon">
                     <span class="material-icons">payments</span>
-                    <input type="number" placeholder="Monto de garantía en Bs" [(ngModel)]="form.value_bs" />
+                    <input type="number" placeholder="Monto de garantía en Bs" [ngModel]="form().value_bs" (ngModelChange)="patchForm({value_bs:+$event})" />
                   </div>
                 </div>
                 <div class="field" style="grid-column: span 2">
                   <div class="field-label">Lugar de garantía</div>
                   <div class="input-icon">
                     <span class="material-icons">location_on</span>
-                    <input placeholder="Opcional" [(ngModel)]="form.guarantee_location" />
+                    <input placeholder="Opcional" [ngModel]="form().guarantee_location" (ngModelChange)="patchForm({guarantee_location:$event})" />
                   </div>
                 </div>
               </div>
@@ -612,10 +612,10 @@
                   <span class="material-icons">person</span> CLIENTE
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Nombre</span><span>{{ form.client1?.full_name ?? '—' }}</span></div>
-                  <div class="ib-row"><span>CI</span><span>{{ form.client1?.id_card ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Teléfono</span><span>{{ form.client1?.phone ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Ciudad</span><span>{{ form.client1?.address ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Nombre</span><span>{{ form().client1?.full_name ?? '—' }}</span></div>
+                  <div class="ib-row"><span>CI</span><span>{{ form().client1?.id_card ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Teléfono</span><span>{{ form().client1?.phone ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Ciudad</span><span>{{ form().client1?.address ?? '—' }}</span></div>
                 </div>
               </div>
               <!-- Vehículo -->
@@ -624,11 +624,11 @@
                   <span class="material-icons">directions_car</span> VEHÍCULO
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Modelo</span><span>{{ form.vehicle ? form.vehicle.brand + ' ' + form.vehicle.model : '—' }}</span></div>
-                  <div class="ib-row"><span>Placa</span><span>{{ form.vehicle?.plate ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Tipo</span><span>{{ form.vehicle ? vehicleTypeName(form.vehicle.vehicle_type_id ?? 0) : '—' }}</span></div>
-                  <div class="ib-row"><span>Tarifa</span><span>{{ form.rate ? 'Bs. ' + (+form.rate.price).toFixed(2) + ' / ' + rateLabel(form.rate.type) : '—' }}</span></div>
-                  <div class="ib-row"><span>Km salida</span><span>{{ form.departure_km ? form.departure_km + ' km' : '—' }}</span></div>
+                  <div class="ib-row"><span>Modelo</span><span>{{ form().vehicle ? form().vehicle!.brand + ' ' + form().vehicle!.model : '—' }}</span></div>
+                  <div class="ib-row"><span>Placa</span><span>{{ form().vehicle?.plate ?? '—' }}</span></div>
+                  <div class="ib-row"><span>Tipo</span><span>{{ form().vehicle ? vehicleTypeName(form().vehicle!.vehicle_type_id ?? 0) : '—' }}</span></div>
+                  <div class="ib-row"><span>Tarifa</span><span>{{ form().rate ? 'Bs. ' + (+form().rate!.price).toFixed(2) + ' / ' + rateLabel(form().rate!.type) : '—' }}</span></div>
+                  <div class="ib-row"><span>Km salida</span><span>{{ form().departure_km ? form().departure_km + ' km' : '—' }}</span></div>
                 </div>
               </div>
               <!-- Entrega y devolución -->
@@ -637,10 +637,10 @@
                   <span class="material-icons">place</span> ENTREGA Y DEVOLUCIÓN
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Entrega</span><span>{{ form.pickup_location || '—' }}</span></div>
-                  <div class="ib-row"><span>Devolución</span><span>{{ form.return_location || '—' }}</span></div>
-                  <div class="ib-row"><span>Fecha salida</span><span>{{ form.departure_datetime || '—' }}</span></div>
-                  <div class="ib-row"><span>Fecha retorno</span><span>{{ form.expected_return || '—' }}</span></div>
+                  <div class="ib-row"><span>Entrega</span><span>{{ form().pickup_location || '—' }}</span></div>
+                  <div class="ib-row"><span>Devolución</span><span>{{ form().return_location || '—' }}</span></div>
+                  <div class="ib-row"><span>Fecha salida</span><span>{{ form().departure_datetime || '—' }}</span></div>
+                  <div class="ib-row"><span>Fecha retorno</span><span>{{ form().expected_return || '—' }}</span></div>
                 </div>
               </div>
               <!-- Otros -->
@@ -649,11 +649,11 @@
                   <span class="material-icons">info</span> OTROS DETALLES
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Área</span><span>{{ form.circulation_area }}</span></div>
-                  <div class="ib-row"><span>Combustible</span><span>{{ form.departure_fuel }}</span></div>
-                  <div class="ib-row"><span>Coberturas</span><span>{{ form.selectedCoverageIds.length }} activa{{ form.selectedCoverageIds.length !== 1 ? 's' : '' }}</span></div>
-                  <div class="ib-row"><span>Garantía</span><span>{{ form.card_type || '—' }}</span></div>
-                  <div class="ib-row"><span>Banco</span><span>{{ form.bank_name || '—' }}</span></div>
+                  <div class="ib-row"><span>Área</span><span>{{ form().circulation_area }}</span></div>
+                  <div class="ib-row"><span>Combustible</span><span>{{ form().departure_fuel }}</span></div>
+                  <div class="ib-row"><span>Coberturas</span><span>{{ form().selectedCoverageIds.length }} activa{{ form().selectedCoverageIds.length !== 1 ? 's' : '' }}</span></div>
+                  <div class="ib-row"><span>Garantía</span><span>{{ form().card_type || '—' }}</span></div>
+                  <div class="ib-row"><span>Banco</span><span>{{ form().bank_name || '—' }}</span></div>
                 </div>
               </div>
             </div>
@@ -668,7 +668,7 @@
                 </div>
                 <div class="est-body">
                   <div class="est-row">
-                    <span>{{ form.vehicle?.brand }} {{ form.vehicle?.model }} × {{ est.units }} {{ form.rate?.type }}{{ est.units !== 1 ? 's' : '' }}</span>
+                    <span>{{ form().vehicle?.brand }} {{ form().vehicle?.model }} × {{ est.units }} {{ form().rate?.type }}{{ est.units !== 1 ? 's' : '' }}</span>
                     <span>{{ formatCurrency(est.subtotalRate) }}</span>
                   </div>
                   @for (cov of est.selectedCovs; track cov.id) {

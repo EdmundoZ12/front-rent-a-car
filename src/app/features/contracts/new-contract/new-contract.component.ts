@@ -39,8 +39,8 @@ export class NewContractComponent implements OnInit {
   submitError = signal('');
   readonly steps = STEPS;
 
-  /* ── form state ─────────────────────────────────────── */
-  form: NewContractFormState = { ...INITIAL_FORM_STATE };
+  /* ── form state (signal so computed() can track it) ─── */
+  form = signal<NewContractFormState>({ ...INITIAL_FORM_STATE });
 
   /* ── catalog data ───────────────────────────────────── */
   vehicleTypes = signal<VehicleType[]>([]);
@@ -95,15 +95,16 @@ export class NewContractComponent implements OnInit {
 
   /* ── step 5: estimated cost ─────────────────────────── */
   readonly estimate = computed(() => {
-    const v    = this.form.vehicle;
-    const rate = this.form.rate;
+    const f    = this.form();
+    const v    = f.vehicle;
+    const rate = f.rate;
     if (!v || !rate) return null;
 
-    const depDate = this.form.departure_datetime
-      ? new Date(this.form.departure_datetime)
+    const depDate = f.departure_datetime
+      ? new Date(f.departure_datetime)
       : new Date();
-    const retDate = this.form.expected_return
-      ? new Date(this.form.expected_return)
+    const retDate = f.expected_return
+      ? new Date(f.expected_return)
       : new Date(depDate.getTime() + 86_400_000);
 
     const msElapsed = Math.max(0, retDate.getTime() - depDate.getTime());
@@ -114,14 +115,12 @@ export class NewContractComponent implements OnInit {
       case 'hour':  units = Math.ceil(days * 24); break;
       case 'week':  units = Math.ceil(days / 7);  break;
       case 'month': units = Math.ceil(days / 30); break;
-      default:      units = days;                  // 'day'
+      default:      units = days;
     }
 
-    // Precio árbol vehicle_type: suma desde nodo hasta raíz
-    const typePrices = this.buildTypeChain(v.vehicle_type_id ?? 0);
-
+    const typePrices       = this.buildTypeChain(v.vehicle_type_id ?? 0);
     const subtotalRate     = Number(rate.price) * units + typePrices;
-    const selectedCovs     = this.coverages().filter(c => this.form.selectedCoverageIds.includes(c.id));
+    const selectedCovs     = this.coverages().filter(c => f.selectedCoverageIds.includes(c.id));
     const subtotalCoverage = selectedCovs.reduce((s, c) => s + Number(c.price_per_day) * days, 0);
     const subtotal         = subtotalRate + subtotalCoverage;
     const vat              = subtotal * 0.13;
@@ -132,13 +131,16 @@ export class NewContractComponent implements OnInit {
   });
 
   /* ── validation ─────────────────────────────────────── */
-  readonly canNext = computed(() => [
-    !!this.form.client1,
-    !!this.form.vehicle && !!this.form.rate,
-    !!(this.form.pickup_location && this.form.departure_datetime && this.form.expected_return && this.form.departure_km),
-    !!(this.form.card_number && this.form.bank_name && this.form.card_type && this.form.valid_until && this.form.value_bs),
-    true,
-  ]);
+  readonly canNext = computed(() => {
+    const f = this.form();
+    return [
+      !!f.client1,
+      !!f.vehicle && !!f.rate,
+      !!(f.pickup_location && f.departure_datetime && f.expected_return && f.departure_km),
+      !!(f.card_number && f.bank_name && f.card_type && f.valid_until && f.value_bs),
+      true,
+    ];
+  });
 
   readonly fuelLevels = FUEL_LEVELS;
 
@@ -163,9 +165,8 @@ export class NewContractComponent implements OnInit {
       this.vehicles.set(vehs);
       this.rates.set(rates);
       this.coverages.set(covs);
-      // Pre-seleccionar coberturas obligatorias
       const mandatory = covs.filter(c => c.is_mandatory).map(c => c.id);
-      this.form = { ...this.form, selectedCoverageIds: mandatory };
+      this.form.update(f => ({ ...f, selectedCoverageIds: mandatory }));
     } catch {
       // continuar con datos vacíos
     } finally {
@@ -197,14 +198,14 @@ export class NewContractComponent implements OnInit {
   }
 
   selectClient(p: Person) {
-    this.form = { ...this.form, client1: p };
+    this.form.update(f => ({ ...f, client1: p }));
     this.searchQuery = '';
     this.showDropdown.set(false);
     this.searchResults.set([]);
   }
 
   clearClient() {
-    this.form = { ...this.form, client1: null };
+    this.form.update(f => ({ ...f, client1: null }));
     this.searchQuery = '';
   }
 
@@ -218,27 +219,27 @@ export class NewContractComponent implements OnInit {
   avatarColor(name: string) { return `hsl(${(name.charCodeAt(0)*7)%360},38%,36%)`; }
 
   toggleDifferentDriver(val: boolean) {
-    this.form = { ...this.form, differentDriver: val, client2: val ? this.form.client2 : null };
+    this.form.update(f => ({ ...f, differentDriver: val, client2: val ? f.client2 : null }));
   }
 
   /* ── step 2: vehicle & rate ─────────────────────────── */
   setFilterType(id: number | null) {
     this.filterTypeId.set(id);
     this.filterSubtypeId.set(null);
-    this.form = { ...this.form, vehicle: null, vehicleTypeId: id, vehicleSubtypeId: null };
+    this.form.update(f => ({ ...f, vehicle: null, vehicleTypeId: id, vehicleSubtypeId: null }));
   }
 
   setFilterSubtype(id: number | null) {
     this.filterSubtypeId.set(id);
-    this.form = { ...this.form, vehicleSubtypeId: id, vehicle: null };
+    this.form.update(f => ({ ...f, vehicleSubtypeId: id, vehicle: null }));
   }
 
   selectVehicle(v: Vehicle) {
-    this.form = { ...this.form, vehicle: v };
+    this.form.update(f => ({ ...f, vehicle: v }));
   }
 
   selectRate(r: Rate) {
-    this.form = { ...this.form, rate: r };
+    this.form.update(f => ({ ...f, rate: r }));
   }
 
   rateLabel(type: string): string {
@@ -247,25 +248,27 @@ export class NewContractComponent implements OnInit {
   }
 
   /* ── step 3: fuel selector ──────────────────────────── */
-  fuelIndex(f: FuelLevel) { return FUEL_LEVELS.indexOf(f); }
+  fuelIndex(lvl: FuelLevel) { return FUEL_LEVELS.indexOf(lvl); }
 
-  selectFuel(f: FuelLevel) {
-    this.form = { ...this.form, departure_fuel: f };
+  selectFuel(lvl: FuelLevel) {
+    this.form.update(f => ({ ...f, departure_fuel: lvl }));
   }
 
-  fuelIsFilled(f: FuelLevel): boolean {
-    return FUEL_LEVELS.indexOf(f) <= FUEL_LEVELS.indexOf(this.form.departure_fuel);
+  fuelIsFilled(lvl: FuelLevel): boolean {
+    return FUEL_LEVELS.indexOf(lvl) <= FUEL_LEVELS.indexOf(this.form().departure_fuel);
   }
 
   /* ── step 4: coverages ──────────────────────────────── */
   toggleCoverage(id: number, mandatory: boolean) {
     if (mandatory) return;
-    const ids = this.form.selectedCoverageIds;
-    const next = ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id];
-    this.form = { ...this.form, selectedCoverageIds: next };
+    this.form.update(f => {
+      const ids  = f.selectedCoverageIds;
+      const next = ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id];
+      return { ...f, selectedCoverageIds: next };
+    });
   }
 
-  isCoverageSelected(id: number) { return this.form.selectedCoverageIds.includes(id); }
+  isCoverageSelected(id: number) { return this.form().selectedCoverageIds.includes(id); }
 
   /* ── step 5: submit ─────────────────────────────────── */
   async confirm() {
@@ -273,30 +276,30 @@ export class NewContractComponent implements OnInit {
     this.submitting.set(true);
     this.submitError.set('');
     try {
-      const f   = this.form;
+      const f = this.form();
       const dto: OpenContractDto = {
-        client1Id:         f.client1!.id,
-        client2Id:         f.client2?.id,
-        requesterId:       f.requester?.id,
-        vehicleId:         f.vehicle!.id,
-        rateId:            f.rate!.id,
-        pickup_location:   f.pickup_location,
-        return_location:   f.return_location,
-        circulation_area:  f.circulation_area,
-        expected_return:   new Date(f.expected_return).toISOString(),
-        departure_datetime:new Date(f.departure_datetime).toISOString(),
-        departure_km:      f.departure_km!,
-        departure_fuel:    f.departure_fuel,
-        coverageIds:       f.selectedCoverageIds,
-        card_number:       f.card_number,
-        bank_name:         f.bank_name,
-        card_type:         f.card_type,
-        valid_until:       new Date(f.valid_until).toISOString(),
-        pa_code:           f.pa_code || undefined,
-        security_code:     f.security_code || undefined,
-        value_bs:          f.value_bs!,
-        guarantee_location:f.guarantee_location || undefined,
-        notes:             f.notes || undefined,
+        client1Id:          f.client1!.id,
+        client2Id:          f.client2?.id,
+        requesterId:        f.requester?.id,
+        vehicleId:          f.vehicle!.id,
+        rateId:             f.rate!.id,
+        pickup_location:    f.pickup_location,
+        return_location:    f.return_location,
+        circulation_area:   f.circulation_area,
+        expected_return:    new Date(f.expected_return).toISOString(),
+        departure_datetime: new Date(f.departure_datetime).toISOString(),
+        departure_km:       f.departure_km!,
+        departure_fuel:     f.departure_fuel,
+        coverageIds:        f.selectedCoverageIds,
+        card_number:        f.card_number,
+        bank_name:          f.bank_name,
+        card_type:          f.card_type,
+        valid_until:        new Date(f.valid_until).toISOString(),
+        pa_code:            f.pa_code || undefined,
+        security_code:      f.security_code || undefined,
+        value_bs:           f.value_bs!,
+        guarantee_location: f.guarantee_location || undefined,
+        notes:              f.notes || undefined,
       };
       await this.contractSvc.open(dto);
       this.confirmed.set(true);
@@ -308,12 +311,12 @@ export class NewContractComponent implements OnInit {
   }
 
   resetForm() {
-    this.form = { ...INITIAL_FORM_STATE };
+    this.form.set({ ...INITIAL_FORM_STATE });
     this.currentStep.set(0);
     this.confirmed.set(false);
     this.submitError.set('');
     const mandatory = this.coverages().filter(c => c.is_mandatory).map(c => c.id);
-    this.form = { ...this.form, selectedCoverageIds: mandatory };
+    this.form.update(f => ({ ...f, selectedCoverageIds: mandatory }));
   }
 
   /* ── helpers ────────────────────────────────────────── */
@@ -330,6 +333,10 @@ export class NewContractComponent implements OnInit {
 
   vehicleTypeName(id: number): string {
     return this.vehicleTypes().find(t => t.id === id)?.name ?? '';
+  }
+
+  patchForm(patch: Partial<NewContractFormState>) {
+    this.form.update(f => ({ ...f, ...patch }));
   }
 
   formatCurrency(n: number) { return `Bs. ${n.toFixed(2)}`; }
