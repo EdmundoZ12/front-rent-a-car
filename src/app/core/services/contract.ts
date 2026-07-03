@@ -16,6 +16,9 @@ export class ContractService {
 
   async open(dto: OpenContractDto): Promise<Contract> {
     const { data } = await api.post<Contract>('/contracts/open', dto);
+
+    console.log(data);
+
     return data;
   }
 

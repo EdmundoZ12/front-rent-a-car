@@ -1,6 +1,20 @@
 <!-- ── SUCCESS SCREEN ──────────────────────────────────────── -->
 @if (confirmed()) {
   <div class="success-screen">
+    <button
+      class="btn-download-corner"
+      [disabled]="downloadingContract()"
+      (click)="downloadContract()"
+      title="Descargar contrato en PDF"
+    >
+      @if (downloadingContract()) {
+        <div class="spinner-sm"></div>
+      } @else {
+        <span class="material-icons">download</span>
+      }
+      Descargar contrato
+    </button>
+
     <div class="success-icon">
       <span class="material-icons">check_circle</span>
     </div>
@@ -11,9 +25,7 @@
         <span class="material-icons">add</span>
         Nuevo contrato
       </button>
-      <a routerLink="/contratos" class="btn-outline">
-        Ver todos los contratos
-      </a>
+      <a routerLink="/contratos" class="btn-outline"> Ver todos los contratos </a>
     </div>
   </div>
 }
@@ -35,7 +47,10 @@
     @for (s of steps; track $index; let i = $index) {
       <div
         class="step-item"
-        [ngClass]="{ 'step-item--done': i < currentStep(), 'step-item--active': i === currentStep() }"
+        [ngClass]="{
+          'step-item--done': i < currentStep(),
+          'step-item--active': i === currentStep(),
+        }"
         (click)="goStep(i)"
       >
         <div class="step-circle">
@@ -61,7 +76,9 @@
     <div class="step-card">
       <div class="step-card-header">
         <div class="step-card-title">{{ steps[currentStep()].label }}</div>
-        <div class="step-card-sub">Paso {{ currentStep() + 1 }} de {{ steps.length }} · {{ steps[currentStep()].sub }}</div>
+        <div class="step-card-sub">
+          Paso {{ currentStep() + 1 }} de {{ steps.length }} · {{ steps[currentStep()].sub }}
+        </div>
       </div>
 
       <!-- Loading overlay -->
@@ -76,7 +93,6 @@
         <!-- ──────────────── STEP 1 ──────────────────────────── -->
         @if (currentStep() === 0) {
           <div class="step-content">
-
             <!-- Búsqueda cliente -->
             <div class="section">
               <div class="section-head">
@@ -87,8 +103,11 @@
                 </div>
               </div>
 
-              <div class="search-wrap" style="position:relative">
-                <div class="search-field" [ngClass]="{ 'search-field--selected': !!form().client1 }">
+              <div class="search-wrap" style="position: relative">
+                <div
+                  class="search-field"
+                  [ngClass]="{ 'search-field--selected': !!form().client1 }"
+                >
                   <span class="material-icons sf-icon">search</span>
                   <input
                     [value]="form().client1 ? form().client1!.full_name! : searchQuery"
@@ -110,13 +129,18 @@
                   <div class="search-dropdown">
                     @if (searching()) {
                       <div class="dd-loading">
-                        <div class="spinner-sm"></div> Buscando...
+                        <div class="spinner-sm"></div>
+                        Buscando...
                       </div>
                     }
                     @if (!searching() && searchResults().length > 0) {
                       @for (p of searchResults(); track p.id) {
                         <div class="dd-item" (mousedown)="selectClient(p)">
-                          <div class="dd-avatar" [style.background]="avatarBg(p.full_name!)" [style.color]="avatarColor(p.full_name!)">
+                          <div
+                            class="dd-avatar"
+                            [style.background]="avatarBg(p.full_name!)"
+                            [style.color]="avatarColor(p.full_name!)"
+                          >
                             {{ initials(p.full_name!) }}
                           </div>
                           <div class="dd-info">
@@ -129,7 +153,10 @@
                     }
                     @if (!searching() && searchResults().length === 0 && searchQuery.trim()) {
                       <div class="dd-empty">
-                        <div>Sin resultados para "<strong>{{ searchQuery }}</strong>"</div>
+                        <div>
+                          Sin resultados para "<strong>{{ searchQuery }}</strong
+                          >"
+                        </div>
                       </div>
                     }
                   </div>
@@ -139,16 +166,28 @@
               <!-- Selected card -->
               @if (form().client1) {
                 <div class="client-card">
-                  <div class="cc-avatar" [style.background]="avatarBg(form().client1!.full_name!)" [style.color]="avatarColor(form().client1!.full_name!)">
+                  <div
+                    class="cc-avatar"
+                    [style.background]="avatarBg(form().client1!.full_name!)"
+                    [style.color]="avatarColor(form().client1!.full_name!)"
+                  >
                     {{ initials(form().client1!.full_name!) }}
                   </div>
                   <div class="cc-info">
                     <div class="cc-name">{{ form().client1!.full_name }}</div>
                     <div class="cc-meta">
-                      @if (form().client1!.id_card) { <span>CI: <strong>{{ form().client1!.id_card }}</strong></span> }
-                      @if (form().client1!.phone) { <span>☎ {{ form().client1!.phone }}</span> }
+                      @if (form().client1!.id_card) {
+                        <span
+                          >CI: <strong>{{ form().client1!.id_card }}</strong></span
+                        >
+                      }
+                      @if (form().client1!.phone) {
+                        <span>☎ {{ form().client1!.phone }}</span>
+                      }
 
-                      @if (form().client1!.address) { <span>📍 {{ form().client1!.address }}</span> }
+                      @if (form().client1!.address) {
+                        <span>📍 {{ form().client1!.address }}</span>
+                      }
                     </div>
                   </div>
                   <div class="cc-check">
@@ -202,13 +241,18 @@
 
             <!-- Requisante -->
             <div class="section">
-              <div class="section-head section-head--clickable" (click)="requesterOpen.set(!requesterOpen())">
+              <div
+                class="section-head section-head--clickable"
+                (click)="requesterOpen.set(!requesterOpen())"
+              >
                 <div class="section-icon"><span class="material-icons">support_agent</span></div>
                 <div>
                   <div class="section-title">Requisante</div>
                   <div class="section-sub">Opcional · Persona que solicita el alquiler</div>
                 </div>
-                <span class="material-icons ml-auto">{{ requesterOpen() ? 'expand_less' : 'expand_more' }}</span>
+                <span class="material-icons ml-auto">{{
+                  requesterOpen() ? 'expand_less' : 'expand_more'
+                }}</span>
               </div>
               @if (requesterOpen()) {
                 <div class="grid-3 mt-12">
@@ -236,14 +280,12 @@
                 </div>
               }
             </div>
-
           </div>
         }
 
         <!-- ──────────────── STEP 2 ──────────────────────────── -->
         @if (currentStep() === 1) {
           <div class="step-content">
-
             <!-- Árbol de selección dinámica en cascada -->
             <div class="section">
               <div class="section-head">
@@ -255,7 +297,12 @@
                       Selecciona una categoría para ver los vehículos disponibles
                     } @else {
                       {{ cascadePath() }}
-                      @if (leafTypeId()) { <span class="cascade-leaf-badge"><span class="material-icons" style="font-size:13px">check_circle</span> Categoría seleccionada</span> }
+                      @if (leafTypeId()) {
+                        <span class="cascade-leaf-badge"
+                          ><span class="material-icons" style="font-size: 13px">check_circle</span>
+                          Categoría seleccionada</span
+                        >
+                      }
                     }
                   </div>
                 </div>
@@ -299,7 +346,9 @@
               <div class="price-accum">
                 <div class="price-accum-items">
                   @for (item of priceAccumulator().typeItems; track $index; let i = $index) {
-                    @if (i > 0) { <span class="price-accum-sep">+</span> }
+                    @if (i > 0) {
+                      <span class="price-accum-sep">+</span>
+                    }
                     <div class="price-accum-item">
                       <span class="price-accum-label">{{ item.label }}</span>
                       <span class="price-accum-val">Bs. {{ item.price.toFixed(2) }}</span>
@@ -308,14 +357,20 @@
                   @if (priceAccumulator().rateItem) {
                     <span class="price-accum-sep">+</span>
                     <div class="price-accum-item price-accum-item--rate">
-                      <span class="price-accum-label">{{ priceAccumulator().rateItem!.label }}</span>
-                      <span class="price-accum-val">Bs. {{ priceAccumulator().rateItem!.price.toFixed(2) }}</span>
+                      <span class="price-accum-label">{{
+                        priceAccumulator().rateItem!.label
+                      }}</span>
+                      <span class="price-accum-val"
+                        >Bs. {{ priceAccumulator().rateItem!.price.toFixed(2) }}</span
+                      >
                     </div>
                   }
                 </div>
                 <div class="price-accum-total">
                   <span class="price-accum-total-label">Total estimado</span>
-                  <span class="price-accum-total-val">Bs. {{ priceAccumulator().total.toFixed(2) }}</span>
+                  <span class="price-accum-total-val"
+                    >Bs. {{ priceAccumulator().total.toFixed(2) }}</span
+                  >
                   @if (priceAccumulator().rateItem) {
                     <span class="price-accum-unit">/ {{ form().rate?.type }}</span>
                   }
@@ -328,7 +383,10 @@
               <div class="vehicle-count">
                 {{ filteredVehicles().length }} vehículos
                 @if (form().vehicle) {
-                  · <span style="color:var(--color-accent);font-weight:500">Seleccionado: {{ form().vehicle!.brand }} {{ form().vehicle!.model }}</span>
+                  ·
+                  <span style="color: var(--color-accent); font-weight: 500"
+                    >Seleccionado: {{ form().vehicle!.brand }} {{ form().vehicle!.model }}</span
+                  >
                 }
               </div>
 
@@ -343,7 +401,10 @@
                 @for (v of filteredVehicles(); track v.id) {
                   <div
                     class="vehicle-card"
-                    [ngClass]="{ 'vehicle-card--selected': form().vehicle?.id === v.id, 'vehicle-card--unavailable': v.available === false }"
+                    [ngClass]="{
+                      'vehicle-card--selected': form().vehicle?.id === v.id,
+                      'vehicle-card--unavailable': v.available === false,
+                    }"
                     (click)="v.available !== false && selectVehicle(v)"
                   >
                     @if (form().vehicle?.id === v.id) {
@@ -374,7 +435,10 @@
                   <div class="section-icon"><span class="material-icons">sell</span></div>
                   <div>
                     <div class="section-title">Tipo de tarifa</div>
-                    <div class="section-sub">{{ form().vehicle!.brand }} {{ form().vehicle!.model }} · {{ form().vehicle!.plate }}</div>
+                    <div class="section-sub">
+                      {{ form().vehicle!.brand }} {{ form().vehicle!.model }} ·
+                      {{ form().vehicle!.plate }}
+                    </div>
                   </div>
                 </div>
                 <div class="rate-buttons">
@@ -386,20 +450,26 @@
                     >
                       <span class="rate-label">{{ rateLabel(r.type) }}</span>
                       <span class="rate-price">Bs. {{ r.price }}</span>
-                      <span class="rate-unit">{{ r.type === 'hour' ? 'por hora' : r.type === 'day' ? 'por día' : r.type === 'week' ? 'por semana' : 'por mes' }}</span>
+                      <span class="rate-unit">{{
+                        r.type === 'hour'
+                          ? 'por hora'
+                          : r.type === 'day'
+                            ? 'por día'
+                            : r.type === 'week'
+                              ? 'por semana'
+                              : 'por mes'
+                      }}</span>
                     </button>
                   }
                 </div>
               </div>
             }
-
           </div>
         }
 
         <!-- ──────────────── STEP 3 ──────────────────────────── -->
         @if (currentStep() === 2) {
           <div class="step-content">
-
             <!-- Lugares -->
             <div class="section">
               <div class="section-head">
@@ -411,14 +481,22 @@
                   <div class="field-label">Lugar de entrega</div>
                   <div class="input-icon">
                     <span class="material-icons">location_on</span>
-                    <input placeholder="Ej: Oficina Central, Av. 6 de Agosto" [ngModel]="form().pickup_location" (ngModelChange)="patchForm({pickup_location:$event})" />
+                    <input
+                      placeholder="Ej: Oficina Central, Av. 6 de Agosto"
+                      [ngModel]="form().pickup_location"
+                      (ngModelChange)="patchForm({ pickup_location: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Lugar de devolución</div>
                   <div class="input-icon">
                     <span class="material-icons">location_off</span>
-                    <input placeholder="Ej: Aeropuerto El Alto" [ngModel]="form().return_location" (ngModelChange)="patchForm({return_location:$event})" />
+                    <input
+                      placeholder="Ej: Aeropuerto Viru Viru"
+                      [ngModel]="form().return_location"
+                      (ngModelChange)="patchForm({ return_location: $event })"
+                    />
                   </div>
                 </div>
               </div>
@@ -431,18 +509,38 @@
                 <div class="section-title">Área de circulación</div>
               </div>
               <div class="area-cards">
-                @for (area of [
-                  { id: 'local',           label: 'Local',          icon: 'location_city', desc: 'Dentro de la ciudad'  },
-                  { id: 'interprovincial', label: 'Interprovincial',icon: 'directions',    desc: 'Entre provincias'     },
-                  { id: 'extraregional',   label: 'Extrarregional', icon: 'public',        desc: 'Fuera de la región'   }
-                ]; track area.id) {
+                @for (
+                  area of [
+                    {
+                      id: 'local',
+                      label: 'Local',
+                      icon: 'location_city',
+                      desc: 'Dentro de la ciudad',
+                    },
+                    {
+                      id: 'interprovincial',
+                      label: 'Interprovincial',
+                      icon: 'directions',
+                      desc: 'Entre provincias',
+                    },
+                    {
+                      id: 'extraregional',
+                      label: 'Extrarregional',
+                      icon: 'public',
+                      desc: 'Fuera de la región',
+                    },
+                  ];
+                  track area.id
+                ) {
                   <div
                     class="area-card"
                     [ngClass]="{ 'area-card--active': form().circulation_area === area.id }"
                     (click)="form().circulation_area = $any(area.id)"
                   >
                     <div class="area-radio">
-                      @if (form().circulation_area === area.id) { <div class="area-radio-dot"></div> }
+                      @if (form().circulation_area === area.id) {
+                        <div class="area-radio-dot"></div>
+                      }
                     </div>
                     <span class="material-icons area-icon">{{ area.icon }}</span>
                     <div>
@@ -465,21 +563,34 @@
                   <div class="field-label">Fecha y hora de salida</div>
                   <div class="input-icon">
                     <span class="material-icons">login</span>
-                    <input type="datetime-local" [ngModel]="form().departure_datetime" (ngModelChange)="patchForm({departure_datetime:$event})" />
+                    <input
+                      type="datetime-local"
+                      [ngModel]="form().departure_datetime"
+                      (ngModelChange)="patchForm({ departure_datetime: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Fecha y hora de devolución prevista</div>
                   <div class="input-icon">
                     <span class="material-icons">event_available</span>
-                    <input type="datetime-local" [ngModel]="form().expected_return" (ngModelChange)="patchForm({expected_return:$event})" />
+                    <input
+                      type="datetime-local"
+                      [ngModel]="form().expected_return"
+                      (ngModelChange)="patchForm({ expected_return: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Kilometraje de salida</div>
                   <div class="input-icon">
                     <span class="material-icons">speed</span>
-                    <input type="number" placeholder="km actuales en odómetro" [ngModel]="form().departure_km" (ngModelChange)="patchForm({departure_km:+$event})" />
+                    <input
+                      type="number"
+                      placeholder="km actuales en odómetro"
+                      [ngModel]="form().departure_km"
+                      (ngModelChange)="patchForm({ departure_km: +$event })"
+                    />
                   </div>
                 </div>
               </div>
@@ -488,7 +599,9 @@
             <!-- Combustible -->
             <div class="section">
               <div class="section-head">
-                <div class="section-icon"><span class="material-icons">local_gas_station</span></div>
+                <div class="section-icon">
+                  <span class="material-icons">local_gas_station</span>
+                </div>
                 <div class="section-title">Nivel de combustible de salida</div>
               </div>
               <div class="fuel-selector">
@@ -496,41 +609,53 @@
                   <button
                     class="fuel-seg"
                     [ngClass]="{
-                      'fuel-seg--active':  form().departure_fuel === f,
-                      'fuel-seg--filled':  fuelIsFilled(f),
+                      'fuel-seg--active': form().departure_fuel === f,
+                      'fuel-seg--filled': fuelIsFilled(f),
                       'fuel-seg--reserve': f === 'V',
-                      'fuel-seg--full':    f === 'F'
+                      'fuel-seg--full': f === 'F',
                     }"
                     (click)="selectFuel(f)"
                   >
-                    @if (f === 'V') { <span class="material-icons fuel-icon">warning</span> }
-                    @if (f === 'F') { <span class="material-icons fuel-icon">local_gas_station</span> }
-                    @if (f !== 'V' && f !== 'F') { <span class="fuel-spacer"></span> }
+                    @if (f === 'V') {
+                      <span class="material-icons fuel-icon">warning</span>
+                    }
+                    @if (f === 'F') {
+                      <span class="material-icons fuel-icon">local_gas_station</span>
+                    }
+                    @if (f !== 'V' && f !== 'F') {
+                      <span class="fuel-spacer"></span>
+                    }
                     <span class="fuel-label">{{ f }}</span>
                   </button>
                 }
               </div>
               <div class="fuel-hint">
                 Nivel seleccionado: <strong>{{ form().departure_fuel }}</strong>
-                @if (form().departure_fuel === 'V') { <span class="fuel-warn"> ⚠ Reserva mínima</span> }
-                @if (form().departure_fuel === 'F') { <span class="fuel-ok"> ✓ Tanque lleno</span> }
+                @if (form().departure_fuel === 'V') {
+                  <span class="fuel-warn"> ⚠ Reserva mínima</span>
+                }
+                @if (form().departure_fuel === 'F') {
+                  <span class="fuel-ok"> ✓ Tanque lleno</span>
+                }
               </div>
             </div>
-
           </div>
         }
 
         <!-- ──────────────── STEP 4 ──────────────────────────── -->
         @if (currentStep() === 3) {
           <div class="step-content">
-
             <!-- Coberturas -->
             <div class="section">
               <div class="section-head">
                 <div class="section-icon"><span class="material-icons">shield</span></div>
                 <div>
                   <div class="section-title">Coberturas</div>
-                  <div class="section-sub">{{ form().selectedCoverageIds.length }} activa{{ form().selectedCoverageIds.length !== 1 ? 's' : '' }}</div>
+                  <div class="section-sub">
+                    {{ form().selectedCoverageIds.length }} activa{{
+                      form().selectedCoverageIds.length !== 1 ? 's' : ''
+                    }}
+                  </div>
                 </div>
               </div>
               <div class="coverage-list">
@@ -541,7 +666,10 @@
                   >
                     <div
                       class="cov-toggle"
-                      [ngClass]="{ 'cov-toggle--on': isCoverageSelected(cov.id), 'cov-toggle--mandatory': cov.is_mandatory }"
+                      [ngClass]="{
+                        'cov-toggle--on': isCoverageSelected(cov.id),
+                        'cov-toggle--mandatory': cov.is_mandatory,
+                      }"
                       (click)="toggleCoverage(cov.id, cov.is_mandatory)"
                     >
                       <div class="cov-thumb"></div>
@@ -556,7 +684,10 @@
                       <div class="cov-desc">{{ cov.description }}</div>
                     </div>
                     <div class="cov-price">
-                      <div class="cov-price-val" [ngClass]="{ 'cov-price-val--active': isCoverageSelected(cov.id) }">
+                      <div
+                        class="cov-price-val"
+                        [ngClass]="{ 'cov-price-val--active': isCoverageSelected(cov.id) }"
+                      >
                         Bs. {{ cov.price_per_day }}
                       </div>
                       <div class="cov-price-unit">por día</div>
@@ -578,7 +709,11 @@
               <div class="grid-2">
                 <div class="field">
                   <div class="field-label">Tipo de garantía</div>
-                  <select class="sel" [ngModel]="form().card_type" (ngModelChange)="patchForm({card_type:$event})">
+                  <select
+                    class="sel"
+                    [ngModel]="form().card_type"
+                    (ngModelChange)="patchForm({ card_type: $event })"
+                  >
                     <option value="">Seleccionar tipo...</option>
                     <option value="credito">Tarjeta de crédito</option>
                     <option value="debito">Tarjeta de débito</option>
@@ -590,73 +725,107 @@
                   <div class="field-label">Banco emisor</div>
                   <div class="input-icon">
                     <span class="material-icons">account_balance</span>
-                    <input placeholder="Nombre del banco" [ngModel]="form().bank_name" (ngModelChange)="patchForm({bank_name:$event})" />
+                    <input
+                      placeholder="Nombre del banco"
+                      [ngModel]="form().bank_name"
+                      (ngModelChange)="patchForm({ bank_name: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Número de tarjeta</div>
                   <div class="input-icon">
                     <span class="material-icons">credit_card</span>
-                    <input placeholder="**** **** **** ****" [ngModel]="form().card_number" (ngModelChange)="patchForm({card_number:$event})" maxlength="19" />
+                    <input
+                      placeholder="**** **** **** ****"
+                      [ngModel]="form().card_number"
+                      (ngModelChange)="patchForm({ card_number: $event })"
+                      maxlength="19"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Válido hasta</div>
                   <div class="input-icon">
                     <span class="material-icons">event</span>
-                    <input type="month" [ngModel]="form().valid_until" (ngModelChange)="patchForm({valid_until:$event})" />
+                    <input
+                      type="month"
+                      [ngModel]="form().valid_until"
+                      (ngModelChange)="patchForm({ valid_until: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Código PA</div>
                   <div class="input-icon">
                     <span class="material-icons">tag</span>
-                    <input placeholder="Opcional" [ngModel]="form().pa_code" (ngModelChange)="patchForm({pa_code:$event})" />
+                    <input
+                      placeholder="Opcional"
+                      [ngModel]="form().pa_code"
+                      (ngModelChange)="patchForm({ pa_code: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field">
                   <div class="field-label">Código de seguridad</div>
                   <div class="input-icon">
                     <span class="material-icons">lock</span>
-                    <input placeholder="CVV / Opcional" [ngModel]="form().security_code" (ngModelChange)="patchForm({security_code:$event})" />
+                    <input
+                      placeholder="CVV / Opcional"
+                      [ngModel]="form().security_code"
+                      (ngModelChange)="patchForm({ security_code: $event })"
+                    />
                   </div>
                 </div>
                 <div class="field" style="grid-column: span 2">
                   <div class="field-label">Valor en Bs (bolivianos)</div>
                   <div class="input-icon">
                     <span class="material-icons">payments</span>
-                    <input type="number" placeholder="Monto de garantía en Bs" [ngModel]="form().value_bs" (ngModelChange)="patchForm({value_bs:+$event})" />
+                    <input
+                      type="number"
+                      placeholder="Monto de garantía en Bs"
+                      [ngModel]="form().value_bs"
+                      (ngModelChange)="patchForm({ value_bs: +$event })"
+                    />
                   </div>
                 </div>
                 <div class="field" style="grid-column: span 2">
                   <div class="field-label">Lugar de garantía</div>
                   <div class="input-icon">
                     <span class="material-icons">location_on</span>
-                    <input placeholder="Opcional" [ngModel]="form().guarantee_location" (ngModelChange)="patchForm({guarantee_location:$event})" />
+                    <input
+                      placeholder="Opcional"
+                      [ngModel]="form().guarantee_location"
+                      (ngModelChange)="patchForm({ guarantee_location: $event })"
+                    />
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         }
 
         <!-- ──────────────── STEP 5 ──────────────────────────── -->
         @if (currentStep() === 4) {
           <div class="step-content">
-
             <!-- Info cards 2x2 -->
             <div class="summary-grid">
               <!-- Cliente -->
               <div class="info-block">
-                <div class="ib-head">
-                  <span class="material-icons">person</span> CLIENTE
-                </div>
+                <div class="ib-head"><span class="material-icons">person</span> CLIENTE</div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Nombre</span><span>{{ form().client1?.full_name ?? '—' }}</span></div>
-                  <div class="ib-row"><span>CI</span><span>{{ form().client1?.id_card ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Teléfono</span><span>{{ form().client1?.phone ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Ciudad</span><span>{{ form().client1?.address ?? '—' }}</span></div>
+                  <div class="ib-row">
+                    <span>Nombre</span><span>{{ form().client1?.full_name ?? '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>CI</span><span>{{ form().client1?.id_card ?? '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Teléfono</span><span>{{ form().client1?.phone ?? '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Ciudad</span><span>{{ form().client1?.address ?? '—' }}</span>
+                  </div>
                 </div>
               </div>
               <!-- Vehículo -->
@@ -665,11 +834,36 @@
                   <span class="material-icons">directions_car</span> VEHÍCULO
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Modelo</span><span>{{ form().vehicle ? form().vehicle!.brand + ' ' + form().vehicle!.model : '—' }}</span></div>
-                  <div class="ib-row"><span>Placa</span><span>{{ form().vehicle?.plate ?? '—' }}</span></div>
-                  <div class="ib-row"><span>Tipo</span><span>{{ form().vehicle ? vehicleTypeName(form().vehicle!.vehicleType?.id ?? 0) : '—' }}</span></div>
-                  <div class="ib-row"><span>Tarifa</span><span>{{ form().rate ? 'Bs. ' + (+form().rate!.price).toFixed(2) + ' / ' + rateLabel(form().rate!.type) : '—' }}</span></div>
-                  <div class="ib-row"><span>Km salida</span><span>{{ form().departure_km ? form().departure_km + ' km' : '—' }}</span></div>
+                  <div class="ib-row">
+                    <span>Modelo</span
+                    ><span>{{
+                      form().vehicle ? form().vehicle!.brand + ' ' + form().vehicle!.model : '—'
+                    }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Placa</span><span>{{ form().vehicle?.plate ?? '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Tipo</span
+                    ><span>{{
+                      form().vehicle ? vehicleTypeName(form().vehicle!.vehicleType?.id ?? 0) : '—'
+                    }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Tarifa</span
+                    ><span>{{
+                      form().rate
+                        ? 'Bs. ' +
+                          (+form().rate!.price).toFixed(2) +
+                          ' / ' +
+                          rateLabel(form().rate!.type)
+                        : '—'
+                    }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Km salida</span
+                    ><span>{{ form().departure_km ? form().departure_km + ' km' : '—' }}</span>
+                  </div>
                 </div>
               </div>
               <!-- Entrega y devolución -->
@@ -678,23 +872,44 @@
                   <span class="material-icons">place</span> ENTREGA Y DEVOLUCIÓN
                 </div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Entrega</span><span>{{ form().pickup_location || '—' }}</span></div>
-                  <div class="ib-row"><span>Devolución</span><span>{{ form().return_location || '—' }}</span></div>
-                  <div class="ib-row"><span>Fecha salida</span><span>{{ form().departure_datetime || '—' }}</span></div>
-                  <div class="ib-row"><span>Fecha retorno</span><span>{{ form().expected_return || '—' }}</span></div>
+                  <div class="ib-row">
+                    <span>Entrega</span><span>{{ form().pickup_location || '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Devolución</span><span>{{ form().return_location || '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Fecha salida</span><span>{{ form().departure_datetime || '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Fecha retorno</span><span>{{ form().expected_return || '—' }}</span>
+                  </div>
                 </div>
               </div>
               <!-- Otros -->
               <div class="info-block">
-                <div class="ib-head">
-                  <span class="material-icons">info</span> OTROS DETALLES
-                </div>
+                <div class="ib-head"><span class="material-icons">info</span> OTROS DETALLES</div>
                 <div class="ib-body">
-                  <div class="ib-row"><span>Área</span><span>{{ form().circulation_area }}</span></div>
-                  <div class="ib-row"><span>Combustible</span><span>{{ form().departure_fuel }}</span></div>
-                  <div class="ib-row"><span>Coberturas</span><span>{{ form().selectedCoverageIds.length }} activa{{ form().selectedCoverageIds.length !== 1 ? 's' : '' }}</span></div>
-                  <div class="ib-row"><span>Garantía</span><span>{{ form().card_type || '—' }}</span></div>
-                  <div class="ib-row"><span>Banco</span><span>{{ form().bank_name || '—' }}</span></div>
+                  <div class="ib-row">
+                    <span>Área</span><span>{{ form().circulation_area }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Combustible</span><span>{{ form().departure_fuel }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Coberturas</span
+                    ><span
+                      >{{ form().selectedCoverageIds.length }} activa{{
+                        form().selectedCoverageIds.length !== 1 ? 's' : ''
+                      }}</span
+                    >
+                  </div>
+                  <div class="ib-row">
+                    <span>Garantía</span><span>{{ form().card_type || '—' }}</span>
+                  </div>
+                  <div class="ib-row">
+                    <span>Banco</span><span>{{ form().bank_name || '—' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -705,22 +920,31 @@
                 <div class="est-header">
                   <span class="material-icons">receipt_long</span>
                   <span>Cálculo estimado del costo</span>
-                  <span class="est-meta">{{ est.days }} día{{ est.days !== 1 ? 's' : '' }} · IVA 13% aplicado</span>
+                  <span class="est-meta"
+                    >{{ est.days }} día{{ est.days !== 1 ? 's' : '' }} · IVA 13% aplicado</span
+                  >
                 </div>
                 <div class="est-body">
                   <div class="est-row">
-                    <span>{{ form().vehicle?.brand }} {{ form().vehicle?.model }} × {{ est.units }} {{ form().rate?.type }}{{ est.units !== 1 ? 's' : '' }}</span>
+                    <span
+                      >{{ form().vehicle?.brand }} {{ form().vehicle?.model }} × {{ est.units }}
+                      {{ form().rate?.type }}{{ est.units !== 1 ? 's' : '' }}</span
+                    >
                     <span>{{ formatCurrency(est.subtotalRate) }}</span>
                   </div>
                   @for (cov of est.selectedCovs; track cov.id) {
                     <div class="est-row">
-                      <span>{{ cov.name }} × {{ est.days }} día{{ est.days !== 1 ? 's' : '' }}</span>
+                      <span
+                        >{{ cov.name }} × {{ est.days }} día{{ est.days !== 1 ? 's' : '' }}</span
+                      >
                       <span>{{ formatCurrency(+cov.price_per_day * est.days) }}</span>
                     </div>
                   }
                   <div class="est-row est-row--sep">
                     <span><strong>Subtotal</strong></span>
-                    <span><strong>{{ formatCurrency(est.subtotal) }}</strong></span>
+                    <span
+                      ><strong>{{ formatCurrency(est.subtotal) }}</strong></span
+                    >
                   </div>
                   <div class="est-row">
                     <span>IVA (13%)</span>
@@ -744,11 +968,7 @@
 
             <!-- Confirm button -->
             <div class="confirm-wrap">
-              <button
-                class="btn-confirm"
-                [disabled]="submitting()"
-                (click)="confirm()"
-              >
+              <button class="btn-confirm" [disabled]="submitting()" (click)="confirm()">
                 @if (submitting()) {
                   <div class="spinner-sm spinner-sm--dark"></div>
                   Creando contrato...
@@ -758,7 +978,6 @@
                 }
               </button>
             </div>
-
           </div>
         }
       }
@@ -767,11 +986,7 @@
 
   <!-- Footer navigation -->
   <div class="step-footer">
-    <button
-      class="btn-prev"
-      [disabled]="currentStep() === 0"
-      (click)="prev()"
-    >
+    <button class="btn-prev" [disabled]="currentStep() === 0" (click)="prev()">
       <span class="material-icons">arrow_back</span>
       Anterior
     </button>
@@ -784,7 +999,7 @@
             class="prog-dot"
             [ngClass]="{
               'prog-dot--active': i === currentStep(),
-              'prog-dot--done':   i < currentStep()
+              'prog-dot--done': i < currentStep(),
             }"
           ></div>
         }
@@ -801,7 +1016,7 @@
         <span class="material-icons">arrow_forward</span>
       </button>
     } @else {
-      <div style="width:140px"></div>
+      <div style="width: 140px"></div>
     }
   </div>
 }
